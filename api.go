@@ -147,7 +147,7 @@ func NewAPI(s Storage) *API {
 		}
 
 		// 200 OK is implied
-		enc.Encode(apiResponse{"", id, ""})
+		enc.Encode(apiResponse{"", id, nil})
 	}
 
 	api.Delete = func(resp http.ResponseWriter, req *http.Request) {
