@@ -1,6 +1,6 @@
 # CRUD API
 
-An implementation of a minimalistic RESTful API offering Create, Read, Update, and Delete (CRUD) handlers.
+An implementation of a minimalist RESTful API offering Create, Read, Update, and Delete (CRUD) handlers.
 
 For more information, check out the wikipedia aticles for [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) and [RESTful](http://en.wikipedia.org/wiki/RESTful).
 
