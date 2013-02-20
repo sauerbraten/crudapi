@@ -22,6 +22,7 @@ type Storage interface {
 	DeleteKind(string) StorageError                  // deletes all resources of a kind, and the kind itself
 	Create(string, string, interface{}) StorageError // creates a resource
 	Get(string, string) (interface{}, StorageError)  // retrieves a resource
+	GetAll(string) ([]interface{}, StorageError)     // retrieves all resources of the specified kind
 	Update(string, string, interface{}) StorageError // updates a resource
 	Delete(string, string) StorageError              // deletes a resource
 }
@@ -113,6 +114,26 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageErro
 		err = ResourceNotFound
 		return
 	}
+
+	return
+}
+
+func (ms MapStorage) GetAll(kind string) (resources []interface{}, err StorageError) {
+	// make sure kind exists
+	ms.RLock()
+	_, ok := ms.data[kind]
+	ms.RUnlock()
+	if !ok {
+		err = KindNotFound
+		return
+	}
+
+	// collect all values in the kind's map in a slice
+	ms.RLock()
+	for _, resource := range ms.data[kind] {
+		resources = append(resources, resource)
+	}
+	ms.RUnlock()
 
 	return
 }

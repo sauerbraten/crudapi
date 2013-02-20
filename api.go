@@ -24,6 +24,9 @@ type API struct {
 	// Get is meant to retrieve resources (HTTP GET). It returns '404 Not Found' or '200 OK'.
 	Get func(resp http.ResponseWriter, req *http.Request)
 
+	// GetAll returns all resources of a kind.
+	GetAll func(resp http.ResponseWriter, req *http.Request)
+
 	// Update is meant to handle PUTs. It returns '400 Bad Request', '404 Not Found' or '200 OK'.
 	Update func(resp http.ResponseWriter, req *http.Request)
 
@@ -106,8 +109,31 @@ func NewAPI(s Storage) *API {
 			return
 		}
 
-		// return artist
+		// return resource
 		err := enc.Encode(apiResponse{"", "", resource})
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	api.GetAll = func(resp http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		kind := vars["kind"]
+		enc := json.NewEncoder(resp)
+
+		// look for resources
+		resources, stoErr := s.GetAll(kind)
+
+		// handle error
+		switch stoErr {
+		case KindNotFound:
+			resp.WriteHeader(404) // Not Found
+			enc.Encode(apiResponse{"kind not found", "", nil})
+			return
+		}
+
+		// return resources
+		err := enc.Encode(apiResponse{"", "", resources})
 		if err != nil {
 			log.Println(err)
 		}
