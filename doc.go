@@ -61,7 +61,7 @@ Output:
 
 	{"id":"gorillaz"}
 
-When POSTing a resource, you *have* to post a JSON object with `"id"` and `"resources"` fields. The `"id"` value is slugified by the server to be URL-safe, so whitespace and fancy characters aren't an issue. You are probably fine just using a unique field of your actual resource.
+When POSTing a resource, you *have* to post a JSON object with `"id"` and `"resource"` fields. The `"id"` value is slugified by the server to be URL-safe, so whitespace and fancy characters aren't an issue. You are probably fine just using a unique field of your actual resource.
 
 Create *Plastic Beach* as *album*:
 
