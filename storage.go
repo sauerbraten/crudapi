@@ -26,7 +26,7 @@ type Storage interface {
 	Delete(string, string) StorageError              // deletes a resource
 }
 
-// MapStorage is a basic API storage using maps. Thus, it is not persistent! It is meant as example.
+// MapStorage is a basic API storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
 // MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
 type MapStorage struct {
 	sync.RWMutex
