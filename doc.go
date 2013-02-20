@@ -116,20 +116,20 @@ Output:
 
 Note the **returned HTTP codes**:
 
-- `201 Created` when POSTing,
-- `200 OK` when GETting and PUTting.
+	- `201 Created` when POSTing,
+	- `200 OK` when GETting and PUTting.
 
 There are also
 
-- `404 Not Found` if either the kind of data you are posting (for example `artist` and `album` in the URLs) is unkown or there is no resource with the specified id ('gorillaz' in the GET request). In that case a JSON object containing an `"error"` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
-- `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are POSTing/PUTting without an `"id"` field in the top-level JSON object.
-- `409 Conflict` and `{"error":"resource already exists"}` as response means, well, that you POSTed a resource with an `"id"` that is already in use.
+	- `404 Not Found` if either the kind of data you are posting (for example `artist` and `album` in the URLs) is unkown or there is no resource with the specified id ('gorillaz' in the GET request). In that case a JSON object containing an `"error"` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
+	- `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are POSTing/PUTting without an `"id"` field in the top-level JSON object.
+	- `409 Conflict` and `{"error":"resource already exists"}` as response means, well, that you POSTed a resource with an `"id"` that is already in use.
 
 Server responses are always a JSON object, containing one or more of the following fields:
 
-- `"error"`: specifies the error that occured, if any
-- `"id"`: the ID of the newly created or updated resource
-- `"resource"`: the requested resource (used when GETting resources)
+	- `"error"`: specifies the error that occured, if any
+	- `"id"`: the ID of the newly created or updated resource
+	- `"resource"`: the requested resource (used when GETting resources)
 
 */
 package crudapi
