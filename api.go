@@ -1,4 +1,3 @@
-//Package crudapi implements HTTP handlers a minimalistic RESTful API offering Create, Read, Update, and Delete (→CRUD) handlers.
 package crudapi
 
 import (
