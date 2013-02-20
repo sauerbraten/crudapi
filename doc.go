@@ -50,7 +50,7 @@ When the server is running, try the following commands:
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"id":"gorillaz","resource":{"name":"Gorillaz","albums":["the-fall"]}}' http://localhost:8080/artist
+	curl -i -X POST -d '{"id":"Gorillaz","resource":{"name":"Gorillaz","albums":["the-fall"]}}' http://localhost:8080/artist
 
 Output:
 
@@ -61,9 +61,11 @@ Output:
 
 	{"id":"gorillaz"}
 
+When POSTing a resource, you *have* to post a JSON object with `"id"` and `"resources"` fields. The `"id"` value is slugified by the server to be URL-safe, so whitespace and fancy characters aren't an issue. You are probably fine just using a unique field of your actual resource.
+
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"id":"plastic-beach","resource":{"title":"Plastic Beach","by":"gorillaz","songs":["on-melancholy-hill","stylo"]}}' http://localhost:8080/album
+	curl -i -X POST -d '{"id":"Plastic Beach","resource":{"title":"Plastic Beach","by":"gorillaz","songs":["on-melancholy-hill","stylo"]}}' http://localhost:8080/album
 
 Output:
 
