@@ -18,7 +18,7 @@ Import the package:
 
 ## Example
 
-Put this code into a 'main.go' file:
+Put this code into a `main.go` file:
 
 	package main
 
@@ -67,7 +67,7 @@ When the server is running, try the following commands
 
 	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/artist/gorillaz
 
-Note the returned HTTP codes:
+Note the **returned HTTP codes**:
 
 - `201 Created` when POSTing,
 - `200 OK` when GETting and PUTting.
