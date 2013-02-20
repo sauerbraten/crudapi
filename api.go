@@ -21,11 +21,19 @@ type apiResponse struct {
 
 // API exposes the CRUD handlers.
 type API struct {
-	s      Storage                                           // the API's storage
-	Create func(resp http.ResponseWriter, req *http.Request) // POST handler
-	Get    func(resp http.ResponseWriter, req *http.Request) // GET handler
-	Update func(resp http.ResponseWriter, req *http.Request) // PUT handler
-	Delete func(resp http.ResponseWriter, req *http.Request) // DELETE handler
+	s Storage // the API's storage
+
+	// Create is meant to handle POST requests. It returns '400 Bad Request', '404 Not Found', '409 Conflict' or '201 Created'.
+	Create func(resp http.ResponseWriter, req *http.Request)
+
+	// Get is meant to retrieve resources (HTTP GET). It returns '404 Not Found' or '200 OK'.
+	Get func(resp http.ResponseWriter, req *http.Request)
+
+	// Update is meant to handle PUTs. It returns '400 Bad Request', '404 Not Found' or '200 OK'.
+	Update func(resp http.ResponseWriter, req *http.Request)
+
+	// Delete is for handling DELETE requests. Possible HTTP status codes are '404 Not Found' and '200 OK'.
+	Delete func(resp http.ResponseWriter, req *http.Request)
 }
 
 // Returns an API relying on the given Storage.
