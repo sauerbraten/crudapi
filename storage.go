@@ -18,16 +18,24 @@ const (
 // Storage describes the methods required for a storage to be used with the API type.
 // When implementing your own storage, make sure that at minimum the CRUD methods are thread-safe.
 type Storage interface {
-	AddKind(string) StorageError                          // adds a new kind of resource
-	DeleteKind(string) StorageError                       // deletes all resources of a kind, and the kind itself
-	Create(string, string, interface{}) StorageError      // creates a resource
-	Get(string, string) (interface{}, StorageError)       // retrieves a resource
-	GetAll(string) (map[string]interface{}, StorageError) // retrieves all resources of the specified kind
-	Update(string, string, interface{}) StorageError      // updates a resource
-	Delete(string, string) StorageError                   // deletes a resource
+	// adds a new kind of resource
+	AddKind(string) StorageError
+	// deletes all resources of a kind, and the kind itself 
+	DeleteKind(string) StorageError
+
+	// creates a resource and stores the data in it
+	Create(string, string, interface{}) StorageError
+	// retrieves a resource
+	Get(string, string) (interface{}, StorageError)
+	// retrieves all resources of the specified kind, returns them in a map of id → resource
+	GetAll(string) (map[string]interface{}, StorageError)
+	// updates a resource
+	Update(string, string, interface{}) StorageError
+	// deletes a resource
+	Delete(string, string) StorageError
 }
 
-// MapStorage is a basic API storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
+// MapStorage is a basic storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
 // MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
 type MapStorage struct {
 	sync.RWMutex
