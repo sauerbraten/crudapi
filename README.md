@@ -23,7 +23,6 @@ Put this code into a `main.go` file:
 	package main
 
 	import (
-		"github.com/gorilla/mux"
 		"github.com/sauerbraten/crudapi"
 		"log"
 		"net/http"
@@ -37,24 +36,12 @@ Put this code into a `main.go` file:
 
 		api := crudapi.NewAPI(s)
 
-		// routes
-		r := mux.NewRouter()
-		r.StrictSlash(true)
-
-		post := r.Methods("POST").Subrouter()
-		get := r.Methods("GET").Subrouter()
-		put := r.Methods("PUT").Subrouter()
-		del := r.Methods("DELETE").Subrouter()
-
-		// crud
-		post.HandleFunc("/{kind}", api.Create)
-		get.HandleFunc("/{kind}/{id}", api.Get)
-		put.HandleFunc("/{kind}/{id}", api.Update)
-		del.HandleFunc("/{kind}/{id}", api.Delete)
-
 		// start listening
 		log.Println("server listening on localhost:8080")
-		http.ListenAndServe(":8080", r)
+		err := http.ListenAndServe(":8080", api.Router)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 When the server is running, try the following commands:
@@ -66,9 +53,7 @@ Create *Gorillaz* as *artist*:
 Output:
 
 	HTTP/1.1 201 Created
-	Date: Wed, 20 Feb 2013 13:20:13 GMT
-	Transfer-Encoding: chunked
-	Content-Type: text/plain; charset=utf-8
+	[...]
 
 	{"id":"gorillaz"}
 
@@ -81,9 +66,7 @@ Create *Plastic Beach* as *album*:
 Output:
 
 	HTTP/1.1 201 Created
-	Date: Wed, 20 Feb 2013 13:21:14 GMT
-	Transfer-Encoding: chunked
-	Content-Type: text/plain; charset=utf-8
+	[...]
 
 	{"id":"plastic-beach"}
 
@@ -94,9 +77,7 @@ Retrieve the *Gorillaz* artist object:
 Output:
 
 	HTTP/1.1 200 OK
-	Date: Wed, 20 Feb 2013 13:25:59 GMT
-	Transfer-Encoding: chunked
-	Content-Type: text/plain; charset=utf-8
+	[...]
 
 	{"resource":{"name":"Gorillaz","albums":["the-fall"]}}
 
@@ -107,9 +88,7 @@ Update the *Gorillaz* object and add the *Plastic Beach* album:
 Output:
 
 	HTTP/1.1 200 OK
-	Date: Wed, 20 Feb 2013 13:27:35 GMT
-	Transfer-Encoding: chunked
-	Content-Type: text/plain; charset=utf-8
+	[...]
 
 	{"id":"gorillaz"}
 
@@ -120,9 +99,7 @@ Again, retrieve the *Gorillaz* artist object:
 Output:
 
 	HTTP/1.1 200 OK
-	Date: Wed, 20 Feb 2013 13:28:32 GMT
-	Transfer-Encoding: chunked
-	Content-Type: text/plain; charset=utf-8
+	[...]
 
 	{"resource":{"albums":["plastic-beach","the-fall"],"name":"Gorillaz"}}
 
