@@ -42,12 +42,12 @@ Last but not least, pass `api.Router` to your http server's `ListenAndServe()`, 
 
 	http.ListenAndServe(":8080", api.Router)
 
-You can also define additional, custom handlers, like so:
+You can also define additional custom handlers, like so:
 
 	api.Router.HandleFunc("/", index)
 	api.Router.HandleFunc("/search", search)
 
-`api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc).
+Note: You should not define routes at anything starting with `/api/`, since those will be interpreted by the default handlers and thus won't work for you. `api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc).
 
 
 ## Example
