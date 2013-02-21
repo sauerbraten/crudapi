@@ -38,8 +38,17 @@ type API struct {
 }
 
 // Returns an API relying on the given Storage.
-func NewAPI(s Storage) *API {
-	api := &API{}
+func NewAPI(path string, s Storage) (api *API) {
+
+	// validate path
+	if len(path) < 2 || path[0] != '/' {
+		path = "/api"
+	}
+
+	// strip trailing slashes
+	for path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
 
 	api.s = s
 
@@ -207,12 +216,14 @@ func NewAPI(s Storage) *API {
 	api.Router = mux.NewRouter()
 	api.Router.StrictSlash(true)
 
+	r := api.Router.PathPrefix(path).Subrouter()
+
 	// set up CRUD routes
-	api.Router.HandleFunc("/api/{kind}", api.create).Methods("POST")
-	api.Router.HandleFunc("/api/{kind}/{id}", api.get).Methods("GET")
-	api.Router.HandleFunc("/api/{kind}", api.getAll).Methods("GET")
-	api.Router.HandleFunc("/api/{kind}/{id}", api.update).Methods("PUT")
-	api.Router.HandleFunc("/api/{kind}/{id}", api.delete).Methods("DELETE")
+	r.HandleFunc("/{kind}", api.create).Methods("POST")
+	r.HandleFunc("/{kind}/{id}", api.get).Methods("GET")
+	r.HandleFunc("/{kind}", api.getAll).Methods("GET")
+	r.HandleFunc("/{kind}/{id}", api.update).Methods("PUT")
+	r.HandleFunc("/{kind}/{id}", api.delete).Methods("DELETE")
 
 	return api
 }
