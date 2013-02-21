@@ -26,9 +26,9 @@ Add your types/kinds of data (you can also think of it as collections like in Mo
 	storage.AddKind("myothertype")
 
 Make sure that these are URL-safe, since you will access them as an URL path.  
-Now, create the actual API and pass it your storage:
+Now, create the actual API and pass it a path prefix and your storage:
 
-	api := crudapi.NewAPI(s)
+	api := crudapi.NewAPI("/api", s)
 
 This will create the following routes:
 
@@ -47,7 +47,7 @@ You can also define additional custom handlers, like so:
 	api.Router.HandleFunc("/", index)
 	api.Router.HandleFunc("/search", search)
 
-Note: You should not define routes at anything starting with `/api/`, since those will be interpreted by the default handlers and thus won't work for you. `api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc).
+Note: You should not define additional routes starting with the API's path prefix, since those will be interpreted by the API handlers and thus won't work for you. `api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc).
 
 
 ## Example
@@ -72,7 +72,7 @@ Put this code into a `main.go` file:
 		s.AddKind("artist")
 		s.AddKind("album")
 
-		api := crudapi.NewAPI(s)
+		api := crudapi.NewAPI("/api", s)
 
 		// custom handler
 		api.Router.HandleFunc("/", index)

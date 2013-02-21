@@ -37,18 +37,19 @@ type API struct {
 	Router *mux.Router
 }
 
-// Returns an API relying on the given Storage.
-func NewAPI(path string, s Storage) (api *API) {
-
-	// validate path
-	if len(path) < 2 || path[0] != '/' {
-		path = "/api"
+// Returns an API relying on the given Storage. The path prefix must start with '/' and be 2 or more characters long. If those criteria are not met, "/api" is used as a fallback instead. Trailing slashes are stripped, like so: "/api///" → "/api".
+func NewAPI(pathPrefix string, s Storage) *API {
+	// validate path prefix
+	if len(pathPrefix) < 2 || pathPrefix[0] != '/' {
+		pathPrefix = "/api"
 	}
 
 	// strip trailing slashes
-	for path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
+	for pathPrefix[len(pathPrefix)-1] == '/' {
+		pathPrefix = pathPrefix[:len(pathPrefix)-1]
 	}
+
+	api := &API{}
 
 	api.s = s
 
@@ -216,7 +217,7 @@ func NewAPI(path string, s Storage) (api *API) {
 	api.Router = mux.NewRouter()
 	api.Router.StrictSlash(true)
 
-	r := api.Router.PathPrefix(path).Subrouter()
+	r := api.Router.PathPrefix(pathPrefix).Subrouter()
 
 	// set up CRUD routes
 	r.HandleFunc("/{kind}", api.create).Methods("POST")
