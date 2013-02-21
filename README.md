@@ -62,6 +62,10 @@ Put this code into a `main.go` file:
 		"net/http"
 	)
 
+	func index(resp http.ResponseWriter, req *http.Request) {
+		resp.Write([]byte("Hello there!"))
+	}
+
 	func main() {
 		// storage
 		s := crudapi.NewMapStorage()
@@ -69,6 +73,9 @@ Put this code into a `main.go` file:
 		s.AddKind("album")
 
 		api := crudapi.NewAPI(s)
+
+		// custom handler
+		api.Router.HandleFunc("/", index)
 
 		// start listening
 		log.Println("server listening on localhost:8080")
@@ -78,7 +85,7 @@ Put this code into a `main.go` file:
 		}
 	}
 
-When the server is running, try the following commands:
+When the server is running, check out the [index page](http://localhost:8080/) and try the following commands in a terminal:
 
 Create *Gorillaz* as *artist*:
 
