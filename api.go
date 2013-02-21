@@ -208,11 +208,11 @@ func NewAPI(s Storage) *API {
 	api.Router.StrictSlash(true)
 
 	// set up CRUD routes
-	api.Router.HandleFunc("/{kind}", api.create).Methods("POST")
-	api.Router.HandleFunc("/{kind}/{id}", api.get).Methods("GET")
-	api.Router.HandleFunc("/{kind}", api.getAll).Methods("GET")
-	api.Router.HandleFunc("/{kind}/{id}", api.update).Methods("PUT")
-	api.Router.HandleFunc("/{kind}/{id}", api.delete).Methods("DELETE")
+	api.Router.HandleFunc("/api/{kind}", api.create).Methods("POST")
+	api.Router.HandleFunc("/api/{kind}/{id}", api.get).Methods("GET")
+	api.Router.HandleFunc("/api/{kind}", api.getAll).Methods("GET")
+	api.Router.HandleFunc("/api/{kind}/{id}", api.update).Methods("PUT")
+	api.Router.HandleFunc("/api/{kind}/{id}", api.delete).Methods("DELETE")
 
 	return api
 }

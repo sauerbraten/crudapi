@@ -32,11 +32,11 @@ Now, create the actual API and pass it your storage:
 
 This will create the following routes:
 
-- `POST /{kind}` – Creates a resource of this *kind* and stores the data you POSTed
-- `GET /{kind}` – Returns all resources of this *kind*
-- `GET /{kind}/{id}` – Returns the resource of this *kind* with that *id*
-- `PUT /{kind}/{id}` – Updates the resource of this *kind* with that *id*
-- `DELETE /{kind}/{id}` – Deletes the resource of this *kind* with that *id*
+- `POST /api/{kind}` – Creates a resource of this *kind* and stores the data you POSTed
+- `GET /api/{kind}` – Returns all resources of this *kind*
+- `GET /api/{kind}/{id}` – Returns the resource of this *kind* with that *id*
+- `PUT /api/{kind}/{id}` – Updates the resource of this *kind* with that *id*
+- `DELETE /api/{kind}/{id}` – Deletes the resource of this *kind* with that *id*
 
 Last but not least, pass `api.Router` to your http server's `ListenAndServe()`, e.g.:
 
@@ -89,7 +89,7 @@ When the server is running, check out the [index page](http://localhost:8080/) a
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"id":"Gorillaz","resource":{"name":"Gorillaz","albums":["the-fall"]}}' http://localhost:8080/artist
+	curl -i -X POST -d '{"id":"Gorillaz","resource":{"name":"Gorillaz","albums":["the-fall"]}}' http://localhost:8080/api/artist
 
 Output:
 
@@ -102,7 +102,7 @@ When POSTing a resource, you *have* to post a JSON object with `"id"` and `"reso
 
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"id":"Plastic Beach","resource":{"title":"Plastic Beach","by":"gorillaz","songs":["on-melancholy-hill","stylo"]}}' http://localhost:8080/album
+	curl -i -X POST -d '{"id":"Plastic Beach","resource":{"title":"Plastic Beach","by":"gorillaz","songs":["on-melancholy-hill","stylo"]}}' http://localhost:8080/api/album
 
 Output:
 
@@ -113,7 +113,7 @@ Output:
 
 Retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/artist/gorillaz
+	curl -i -X GET http://localhost:8080/api/artist/gorillaz
 
 Output:
 
@@ -124,7 +124,7 @@ Output:
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
-	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/artist/gorillaz
+	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/api/artist/gorillaz
 
 Output:
 
@@ -135,7 +135,7 @@ Output:
 
 Again, retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/artist/gorillaz
+	curl -i -X GET http://localhost:8080/api/artist/gorillaz
 
 Output:
 
