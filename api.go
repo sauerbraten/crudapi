@@ -19,19 +19,22 @@ type API struct {
 	s Storage // the API's storage
 
 	// Create is meant to handle POST requests. It returns '400 Bad Request', '404 Not Found', '409 Conflict' or '201 Created'.
-	Create func(resp http.ResponseWriter, req *http.Request)
+	create func(resp http.ResponseWriter, req *http.Request)
 
 	// Get is meant to retrieve resources (HTTP GET). It returns '404 Not Found' or '200 OK'.
-	Get func(resp http.ResponseWriter, req *http.Request)
+	get func(resp http.ResponseWriter, req *http.Request)
 
 	// GetAll returns all resources of a kind.
-	GetAll func(resp http.ResponseWriter, req *http.Request)
+	getAll func(resp http.ResponseWriter, req *http.Request)
 
 	// Update is meant to handle PUTs. It returns '400 Bad Request', '404 Not Found' or '200 OK'.
-	Update func(resp http.ResponseWriter, req *http.Request)
+	update func(resp http.ResponseWriter, req *http.Request)
 
 	// Delete is for handling DELETE requests. Possible HTTP status codes are '404 Not Found' and '200 OK'.
-	Delete func(resp http.ResponseWriter, req *http.Request)
+	delete func(resp http.ResponseWriter, req *http.Request)
+
+	// The generated CRUD routes. Pass this to http.ListenAndServe().
+	Router *mux.Router
 }
 
 // Returns an API relying on the given Storage.
@@ -40,7 +43,7 @@ func NewAPI(s Storage) *API {
 
 	api.s = s
 
-	api.Create = func(resp http.ResponseWriter, req *http.Request) {
+	api.create = func(resp http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		kind := vars["kind"]
 		enc := json.NewEncoder(resp)
@@ -88,7 +91,7 @@ func NewAPI(s Storage) *API {
 		enc.Encode(apiResponse{"", id, nil})
 	}
 
-	api.Get = func(resp http.ResponseWriter, req *http.Request) {
+	api.get = func(resp http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		kind := vars["kind"]
 		id := vars["id"]
@@ -116,7 +119,7 @@ func NewAPI(s Storage) *API {
 		}
 	}
 
-	api.GetAll = func(resp http.ResponseWriter, req *http.Request) {
+	api.getAll = func(resp http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		kind := vars["kind"]
 		enc := json.NewEncoder(resp)
@@ -139,7 +142,7 @@ func NewAPI(s Storage) *API {
 		}
 	}
 
-	api.Update = func(resp http.ResponseWriter, req *http.Request) {
+	api.update = func(resp http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		kind := vars["kind"]
 		id := vars["id"]
@@ -176,7 +179,7 @@ func NewAPI(s Storage) *API {
 		enc.Encode(apiResponse{"", id, nil})
 	}
 
-	api.Delete = func(resp http.ResponseWriter, req *http.Request) {
+	api.delete = func(resp http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		kind := vars["kind"]
 		id := vars["id"]
@@ -200,6 +203,16 @@ func NewAPI(s Storage) *API {
 		// 200 OK is implied
 		enc.Encode(apiResponse{"", "", nil})
 	}
+
+	api.Router = mux.NewRouter()
+	api.Router.StrictSlash(true)
+
+	// set up CRUD routes
+	api.Router.HandleFunc("/{kind}", api.create).Methods("POST")
+	api.Router.HandleFunc("/{kind}/{id}", api.get).Methods("GET")
+	api.Router.HandleFunc("/{kind}", api.getAll).Methods("GET")
+	api.Router.HandleFunc("/{kind}/{id}", api.update).Methods("PUT")
+	api.Router.HandleFunc("/{kind}/{id}", api.delete).Methods("DELETE")
 
 	return api
 }

@@ -18,13 +18,13 @@ const (
 // Storage describes the methods required for a storage to be used with the API type.
 // When implementing your own storage, make sure that at minimum the CRUD methods are thread-safe.
 type Storage interface {
-	AddKind(string) StorageError                     // adds a new kind of resource
-	DeleteKind(string) StorageError                  // deletes all resources of a kind, and the kind itself
-	Create(string, string, interface{}) StorageError // creates a resource
-	Get(string, string) (interface{}, StorageError)  // retrieves a resource
-	GetAll(string) ([]interface{}, StorageError)     // retrieves all resources of the specified kind
-	Update(string, string, interface{}) StorageError // updates a resource
-	Delete(string, string) StorageError              // deletes a resource
+	AddKind(string) StorageError                          // adds a new kind of resource
+	DeleteKind(string) StorageError                       // deletes all resources of a kind, and the kind itself
+	Create(string, string, interface{}) StorageError      // creates a resource
+	Get(string, string) (interface{}, StorageError)       // retrieves a resource
+	GetAll(string) (map[string]interface{}, StorageError) // retrieves all resources of the specified kind
+	Update(string, string, interface{}) StorageError      // updates a resource
+	Delete(string, string) StorageError                   // deletes a resource
 }
 
 // MapStorage is a basic API storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
@@ -118,7 +118,7 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageErro
 	return
 }
 
-func (ms MapStorage) GetAll(kind string) (resources []interface{}, err StorageError) {
+func (ms MapStorage) GetAll(kind string) (resources map[string]interface{}, err StorageError) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -130,9 +130,7 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, err StorageEr
 
 	// collect all values in the kind's map in a slice
 	ms.RLock()
-	for _, resource := range ms.data[kind] {
-		resources = append(resources, resource)
-	}
+	resources = ms.data[kind]
 	ms.RUnlock()
 
 	return
