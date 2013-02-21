@@ -16,6 +16,40 @@ Import the package:
 		"github.com/sauerbraten/crudapi"
 	)
 
+You need to specify where you want to store data. You can implement [crudapi.Storage](http://godoc.org/github.com/sauerbraten/crudapi#Storage) for that purpose. There is an example implementation of that interface using maps, which we will use here:
+
+	storage := crudapi.NewMapStorage()
+
+Add your types/kinds of data (you can also think of it as collections like in MongoDB):
+
+	storage.AddKind("mytype")
+	storage.AddKind("myothertype")
+
+Make sure that these are URL-safe, since you will access them as an URL path.  
+Now, create the actual API and pass it your storage:
+
+	api := crudapi.NewAPI(s)
+
+This will create the following routes:
+
+- `POST /{kind}` – Creates a resource of this *kind* and stores the data you POSTed
+- `GET /{kind}` – Returns all resources of this *kind*
+- `GET /{kind}/{id}` – Returns the resource of this *kind* with that *id*
+- `PUT /{kind}/{id}` – Updates the resource of this *kind* with that *id*
+- `DELETE /{kind}/{id}` – Deletes the resource of this *kind* with that *id*
+
+Last but not least, pass `api.Router` to your http server's `ListenAndServe()`, e.g.:
+
+	http.ListenAndServe(":8080", api.Router)
+
+You can also define additional, custom handlers, like so:
+
+	api.Router.HandleFunc("/", index)
+	api.Router.HandleFunc("/search", search)
+
+`api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc).
+
+
 ## Example
 
 Put this code into a `main.go` file:
