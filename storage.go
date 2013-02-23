@@ -8,7 +8,7 @@ import (
 type StorageError int
 
 const (
-	_                StorageError = iota // 0 is not used and means no error
+	None             StorageError = iota // 0 means no error
 	ResourceExists                       // resource already exists
 	ResourceNotFound                     // resource not found / no such resource
 	KindExists                           // kind already exists
