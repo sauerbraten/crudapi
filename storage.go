@@ -9,6 +9,7 @@ type StorageError int
 
 const (
 	None             StorageError = iota // 0 means no error
+	InternalError                        // for internal errors, e.g. database connection errors
 	ResourceExists                       // resource already exists
 	ResourceNotFound                     // resource not found / no such resource
 	KindExists                           // kind already exists

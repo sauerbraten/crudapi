@@ -94,6 +94,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 			resp.WriteHeader(409) // Conflict
 			enc.Encode(apiResponse{"resource already exists", "", nil})
 			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
+			return
 		}
 
 		// report success
@@ -120,6 +124,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 			resp.WriteHeader(404) // Not Found
 			enc.Encode(apiResponse{"resource not found", "", nil})
 			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
+			return
 		}
 
 		// return resource
@@ -142,6 +150,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		case KindNotFound:
 			resp.WriteHeader(404) // Not Found
 			enc.Encode(apiResponse{"kind not found", "", nil})
+			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
 			return
 		}
 
@@ -183,6 +195,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 			resp.WriteHeader(404) // Not Found
 			enc.Encode(apiResponse{"resource not found", "", nil})
 			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
+			return
 		}
 
 		// 200 OK is implied
@@ -207,6 +223,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		case ResourceNotFound:
 			resp.WriteHeader(404) // Not Found
 			enc.Encode(apiResponse{"resource not found", "", nil})
+			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
 			return
 		}
 
