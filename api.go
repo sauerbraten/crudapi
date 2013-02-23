@@ -3,7 +3,6 @@ package crudapi
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/sauerbraten/slugify"
 	"log"
 	"net/http"
 )
@@ -60,8 +59,8 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		dec := json.NewDecoder(req.Body)
 
 		// read body and parse into interface{}
-		var payload map[string]interface{}
-		err := dec.Decode(&payload)
+		var resource interface{}
+		err := dec.Decode(&resource)
 
 		if err != nil {
 			log.Println(err)
@@ -70,29 +69,14 @@ func NewAPI(pathPrefix string, s Storage) *API {
 			return
 		}
 
-		// create ID
-		resourceName, ok := payload["id"]
-		if !ok {
-			resp.WriteHeader(400) // Bad Request
-			enc.Encode(apiResponse{"no id field given", "", nil})
-			return
-		}
-
-		// make URL-safe
-		id := slugify.S(resourceName.(string))
-
 		// set in storage
-		stoErr := s.Create(kind, id, payload["resource"])
+		id, stoErr := s.Create(kind, resource)
 
 		// handle error
 		switch stoErr {
 		case KindNotFound:
 			resp.WriteHeader(404) // Not Found
 			enc.Encode(apiResponse{"kind not found", "", nil})
-			return
-		case ResourceExists:
-			resp.WriteHeader(409) // Conflict
-			enc.Encode(apiResponse{"resource already exists", "", nil})
 			return
 		case InternalError:
 			resp.WriteHeader(500) // Internal Server Error

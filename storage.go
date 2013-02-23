@@ -1,7 +1,9 @@
 package crudapi
 
 import (
+	"strconv"
 	"sync"
+	"time"
 )
 
 // A StorageError is returned by Storage's methods and describes what kind of error occured.
@@ -24,8 +26,8 @@ type Storage interface {
 	// deletes all resources of a kind, and the kind itself 
 	DeleteKind(string) StorageError
 
-	// creates a resource and stores the data in it
-	Create(string, string, interface{}) StorageError
+	// creates a resource and stores the data in it, then returns the ID
+	Create(string, interface{}) (string, StorageError)
 	// retrieves a resource
 	Get(string, string) (interface{}, StorageError)
 	// retrieves all resources of the specified kind, returns them in a map of id → resource
@@ -61,7 +63,7 @@ func (ms MapStorage) AddKind(kind string) StorageError {
 	ms.data[kind] = make(map[string]interface{})
 	ms.Unlock()
 
-	return 0
+	return None
 }
 
 func (ms MapStorage) DeleteKind(kind string) StorageError {
@@ -77,32 +79,27 @@ func (ms MapStorage) DeleteKind(kind string) StorageError {
 	delete(ms.data, kind)
 	ms.Unlock()
 
-	return 0
+	return None
 }
 
-func (ms MapStorage) Create(kind, id string, resource interface{}) StorageError {
+func (ms MapStorage) Create(kind string, resource interface{}) (id string, err StorageError) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		return KindNotFound
+		return
 	}
 
-	// make sure a resource with this ID does not exist already
-	ms.RLock()
-	_, ok = ms.data[kind][id]
-	ms.RUnlock()
-	if ok {
-		return ResourceExists
-	}
+	// make (pesudo-random) ID
+	id = strconv.FormatInt(time.Now().Unix(), 10)
 
 	// create nil entry for the new ID
 	ms.Lock()
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
-	return 0
+	return
 }
 
 func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageError) {
@@ -167,7 +164,7 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) StorageError 
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
-	return 0
+	return None
 }
 
 func (ms MapStorage) Delete(kind, id string) StorageError {
@@ -192,5 +189,5 @@ func (ms MapStorage) Delete(kind, id string) StorageError {
 	delete(ms.data[kind], id)
 	ms.Unlock()
 
-	return 0
+	return None
 }
