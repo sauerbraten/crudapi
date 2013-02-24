@@ -96,9 +96,9 @@ Output:
 	HTTP/1.1 201 Created
 	[...]
 
-	{"id":"gorillaz"}
+	{"id":"1361703578"}
 
-When POSTing a resource, you *have* to post a JSON object with `"id"` and `"resource"` fields. The `"id"` value is slugified by the server to be URL-safe, so whitespace and fancy characters aren't an issue. You are probably fine just using a unique field of your actual resource.
+The ID in the reply is created by your storage implementation, typically a wrapper for a database, so when you insert something you get the ID of the inserted data. The MapStorage we use here simply uses the unix timestamp (which is definitely not recommended!).
 
 Create *Plastic Beach* as *album*:
 
@@ -109,11 +109,11 @@ Output:
 	HTTP/1.1 201 Created
 	[...]
 
-	{"id":"plastic-beach"}
+	{"id":"1361703700"}
 
 Retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/api/artist/gorillaz
+	curl -i -X GET http://localhost:8080/api/artist/1361703578
 
 Output:
 
@@ -124,18 +124,18 @@ Output:
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
-	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/api/artist/gorillaz
+	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/api/artist/1361703578
 
 Output:
 
 	HTTP/1.1 200 OK
 	[...]
 
-	{"id":"gorillaz"}
+	{"id":"1361703578"}
 
 Again, retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/api/artist/gorillaz
+	curl -i -X GET http://localhost:8080/api/artist/1361703578
 
 Output:
 
