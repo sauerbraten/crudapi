@@ -32,7 +32,7 @@ Now, create the actual API and pass it a path prefix and your storage:
 
 This will create the following routes:
 
-- `POST /api/{kind}` – Creates a resource of this *kind* and stores the data you POSTed
+- `POST /api/{kind}` – Creates a resource of this *kind* and stores the data you POSTed, then returns the ID
 - `GET /api/{kind}` – Returns all resources of this *kind*
 - `GET /api/{kind}/{id}` – Returns the resource of this *kind* with that *id*
 - `PUT /api/{kind}/{id}` – Updates the resource of this *kind* with that *id*
@@ -89,7 +89,7 @@ When the server is running, check out the [index page](http://localhost:8080/) a
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"id":"Gorillaz","resource":{"name":"Gorillaz","albums":["the-fall"]}}' http://localhost:8080/api/artist
+	curl -i -X POST -d '{"name":"Gorillaz","albums":["the-fall"]}' http://localhost:8080/api/artist
 
 Output:
 
@@ -154,7 +154,6 @@ There are also
 
 - `404 Not Found` if either the kind of data you are posting (for example `artist` and `album` in the URLs) is unkown or there is no resource with the specified id ('gorillaz' in the GET request). In that case a JSON object containing an `"error"` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
 - `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are POSTing/PUTting without an `"id"` field in the top-level JSON object.
-- `409 Conflict` and `{"error":"resource already exists"}` as response means, well, that you POSTed a resource with an `"id"` that is already in use.
 
 Server responses are always a JSON object, containing one or more of the following fields:
 
