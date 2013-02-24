@@ -27,13 +27,13 @@ type Storage interface {
 	DeleteKind(string) StorageError
 
 	// creates a resource and stores the data in it, then returns the ID
-	Create(string, interface{}) (string, StorageError)
+	Create(string, map[string]interface{}) (string, StorageError)
 	// retrieves a resource
-	Get(string, string) (interface{}, StorageError)
+	Get(string, string) (map[string]interface{}, StorageError)
 	// retrieves all resources of the specified kind, returns them in a map of id → resource
-	GetAll(string) (map[string]interface{}, StorageError)
+	GetAll(string) (map[string]map[string]interface{}, StorageError)
 	// updates a resource
-	Update(string, string, interface{}) StorageError
+	Update(string, string, map[string]interface{}) StorageError
 	// deletes a resource
 	Delete(string, string) StorageError
 }
@@ -42,12 +42,12 @@ type Storage interface {
 // MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
 type MapStorage struct {
 	sync.RWMutex
-	data map[string]map[string]interface{}
+	data map[string]map[string]map[string]interface{}
 }
 
 // Returns an initialized MapStorage
 func NewMapStorage() MapStorage {
-	return MapStorage{sync.RWMutex{}, make(map[string]map[string]interface{})}
+	return MapStorage{sync.RWMutex{}, make(map[string]map[string]map[string]interface{})}
 }
 
 func (ms MapStorage) AddKind(kind string) StorageError {
@@ -60,7 +60,7 @@ func (ms MapStorage) AddKind(kind string) StorageError {
 	}
 
 	ms.Lock()
-	ms.data[kind] = make(map[string]interface{})
+	ms.data[kind] = make(map[string]map[string]interface{})
 	ms.Unlock()
 
 	return None
@@ -82,7 +82,7 @@ func (ms MapStorage) DeleteKind(kind string) StorageError {
 	return None
 }
 
-func (ms MapStorage) Create(kind string, resource interface{}) (id string, err StorageError) {
+func (ms MapStorage) Create(kind string, resource map[string]interface{}) (id string, err StorageError) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -102,7 +102,7 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, err S
 	return
 }
 
-func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageError) {
+func (ms MapStorage) Get(kind, id string) (resource map[string]interface{}, err StorageError) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -124,7 +124,7 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageErro
 	return
 }
 
-func (ms MapStorage) GetAll(kind string) (resources map[string]interface{}, err StorageError) {
+func (ms MapStorage) GetAll(kind string) (resources map[string]map[string]interface{}, err StorageError) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -142,7 +142,7 @@ func (ms MapStorage) GetAll(kind string) (resources map[string]interface{}, err 
 	return
 }
 
-func (ms MapStorage) Update(kind, id string, resource interface{}) StorageError {
+func (ms MapStorage) Update(kind, id string, resource map[string]interface{}) StorageError {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]

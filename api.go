@@ -59,7 +59,7 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		dec := json.NewDecoder(req.Body)
 
 		// read body and parse into interface{}
-		var resource interface{}
+		var resource map[string]interface{}
 		err := dec.Decode(&resource)
 
 		if err != nil {
@@ -156,7 +156,7 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		dec := json.NewDecoder(req.Body)
 
 		// read body and parse into interface{}
-		var resource interface{}
+		var resource map[string]interface{}
 		err := dec.Decode(&resource)
 
 		if err != nil {
