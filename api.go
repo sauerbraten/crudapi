@@ -17,7 +17,7 @@ type apiResponse struct {
 type API struct {
 	s Storage // the API's storage
 
-	// Create is meant to handle POST requests. It returns '400 Bad Request', '404 Not Found', '409 Conflict' or '201 Created'.
+	// Create is meant to handle POST requests. It returns '400 Bad Request', '404 Not Found' or '201 Created'.
 	create func(resp http.ResponseWriter, req *http.Request)
 
 	// Get is meant to retrieve resources (HTTP GET). It returns '404 Not Found' or '200 OK'.
@@ -29,8 +29,11 @@ type API struct {
 	// Update is meant to handle PUTs. It returns '400 Bad Request', '404 Not Found' or '200 OK'.
 	update func(resp http.ResponseWriter, req *http.Request)
 
-	// Delete is for handling DELETE requests. Possible HTTP status codes are '404 Not Found' and '200 OK'.
+	// Delete is for handling DELETE requests on single resources. Possible HTTP status codes are '404 Not Found' and '200 OK'.
 	delete func(resp http.ResponseWriter, req *http.Request)
+
+	// DeleteAll is for handling DELETE on whole kinds. Possible HTTP status codes are '404 Not Found' and '200 OK'.
+	deleteAll func(resp http.ResponseWriter, req *http.Request)
 
 	// The generated CRUD routes. Pass this to http.ListenAndServe().
 	Router *mux.Router
@@ -218,6 +221,30 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		enc.Encode(apiResponse{"", "", nil})
 	}
 
+	api.deleteAll = func(resp http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		kind := vars["kind"]
+		enc := json.NewEncoder(resp)
+
+		// look for resources
+		stoErr := s.DeleteAll(kind)
+
+		// handle error
+		switch stoErr {
+		case KindNotFound:
+			resp.WriteHeader(404) // Not Found
+			enc.Encode(apiResponse{"kind not found", "", nil})
+			return
+		case InternalError:
+			resp.WriteHeader(500) // Internal Server Error
+			enc.Encode(apiResponse{"storage failure", "", nil})
+			return
+		}
+
+		// 200 OK is implied
+		enc.Encode(apiResponse{"", "", nil})
+	}
+
 	api.Router = mux.NewRouter()
 	api.Router.StrictSlash(true)
 
@@ -225,9 +252,10 @@ func NewAPI(pathPrefix string, s Storage) *API {
 
 	// set up CRUD routes
 	r.HandleFunc("/{kind}", api.create).Methods("POST")
-	r.HandleFunc("/{kind}/{id}", api.get).Methods("GET")
 	r.HandleFunc("/{kind}", api.getAll).Methods("GET")
+	r.HandleFunc("/{kind}/{id}", api.get).Methods("GET")
 	r.HandleFunc("/{kind}/{id}", api.update).Methods("PUT")
+	r.HandleFunc("/{kind}", api.deleteAll).Methods("DELETE")
 	r.HandleFunc("/{kind}/{id}", api.delete).Methods("DELETE")
 
 	return api
