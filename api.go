@@ -1,3 +1,10 @@
+/*
+Package crudapi implements a RESTful JSON API exposing CRUD functionality relying on a custom storage.
+
+See http://en.wikipedia.org/wiki/RESTful and http://en.wikipedia.org/wiki/Create,_read,_update_and_delete for more information.
+
+An example can be found at: https://github.com/sauerbraten/crudapi#example
+*/
 package crudapi
 
 import (
@@ -15,7 +22,8 @@ type apiResponse struct {
 
 // API exposes the CRUD handlers.
 type API struct {
-	s Storage // the API's storage
+	// the API's storage
+	s Storage
 
 	// Create is meant to handle POST requests. It returns '400 Bad Request', '404 Not Found' or '201 Created'.
 	create func(resp http.ResponseWriter, req *http.Request)
@@ -189,7 +197,7 @@ func NewAPI(pathPrefix string, s Storage) *API {
 		}
 
 		// 200 OK is implied
-		enc.Encode(apiResponse{"", id, nil})
+		enc.Encode(apiResponse{"", "", nil})
 	}
 
 	api.delete = func(resp http.ResponseWriter, req *http.Request) {

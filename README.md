@@ -93,7 +93,7 @@ When the server is running, check out the [index page](http://localhost:8080/) a
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"name":"Gorillaz","albums":["the-fall"]}' http://localhost:8080/api/artists
+	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://localhost:8080/api/artists
 
 Output:
 
@@ -106,7 +106,7 @@ The ID in the reply is created by your storage implementation, typically a wrapp
 
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"title":"Plastic Beach","by":"gorillaz","songs":["on-melancholy-hill","stylo"]}' http://localhost:8080/api/albums
+	curl -i -X POST -d '{"title":"Plastic Beach","by":"gorillaz","songs":["On Melancholy Hill","Stylo"]}' http://localhost:8080/api/albums
 
 Output:
 
@@ -124,11 +124,11 @@ Output:
 	HTTP/1.1 200 OK
 	[...]
 
-	{"resource":{"name":"Gorillaz","albums":["the-fall"]}}
+	{"resource":{"name":"Gorillaz","albums":[]}}
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
-	curl -i -X PUT -d '{"name":"Gorillaz","albums":["plastic-beach","the-fall"]}' http://localhost:8080/api/artists/1361703578
+	curl -i -X PUT -d '{"name":"Gorillaz","albums":["1361703700"]}' http://localhost:8080/api/artists/1361703578
 
 Output:
 
@@ -146,7 +146,7 @@ Output:
 	HTTP/1.1 200 OK
 	[...]
 
-	{"resource":{"albums":["plastic-beach","the-fall"],"name":"Gorillaz"}}
+	{"resource":{"albums":["1361703700"],"name":"Gorillaz"}}
 
 
 Note the **returned HTTP codes**:
@@ -156,13 +156,13 @@ Note the **returned HTTP codes**:
 
 There are also
 
-- `404 Not Found` if either the kind of data you are posting (for example `artist` and `album` in the URLs) is unkown or there is no resource with the specified id ('gorillaz' in the GET request). In that case a JSON object containing an `error` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
+- `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or there is no resource with the specified ID. In that case a JSON object containing an `error` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
 - `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are PUTting without an `id` in the URL.
 
-Server responses are always a JSON object, containing one or more of the following fields:
+Server responses are always a JSON object, containing zero or more of the following fields:
 
 - `"error"` – specifies the error that occured, if any
-- `"id"` – the ID of the newly created or updated resource
+- `"id"` – the ID of the newly created resource (only used when POSTing)
 - `"resource"` – the requested resource (used when GETting resources)
 
 
