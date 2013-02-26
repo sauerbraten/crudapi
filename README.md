@@ -106,7 +106,7 @@ The ID in the reply is created by your storage implementation, typically a wrapp
 
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"title":"Plastic Beach","by":"gorillaz","songs":["On Melancholy Hill","Stylo"]}' http://localhost:8080/api/albums
+	curl -i -X POST -d '{"title":"Plastic Beach","songs":["On Melancholy Hill","Stylo"]}' http://localhost:8080/api/albums
 
 Output:
 
