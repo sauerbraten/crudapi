@@ -135,7 +135,7 @@ Output:
 	HTTP/1.1 200 OK
 	[...]
 
-	{"id":"1361703578"}
+	{}
 
 Again, retrieve the *Gorillaz* artist object:
 
