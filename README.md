@@ -29,11 +29,11 @@ Make sure that these are URL-safe, since you will access them as an URL path.
 Next, create a `*mux.Router` and mount the API:
 
 	router := mux.NewRouter()
-	crudapi.MountAPI(router, s)
+	crudapi.MountAPI(router, storage)
 
 You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
-	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), s)
+	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage)
 
 This will create the following CRUD routes:
 
