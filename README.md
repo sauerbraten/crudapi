@@ -61,6 +61,7 @@ Put this code into a `main.go` file:
 	package main
 
 	import (
+		"github.com/gorilla/mux"
 		"github.com/sauerbraten/crudapi"
 		"log"
 		"net/http"
@@ -76,14 +77,18 @@ Put this code into a `main.go` file:
 		s.AddMap("artists")
 		s.AddMap("albums")
 
-		api := crudapi.NewAPI("/api", s)
+		// router
+		r := mux.NewRouter()
+		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s)
 
 		// custom handler
-		api.Router.HandleFunc("/", hello)
+		r.HandleFunc("/", hello)
 
 		// start listening
 		log.Println("server listening on localhost:8080")
-		err := http.ListenAndServe(":8080", api.Router)
+		log.Println("API on api.localhost/v1/")
+
+		err := http.ListenAndServe(":8080", r)
 		if err != nil {
 			log.Println(err)
 		}
@@ -93,7 +98,7 @@ When the server is running, check out the [index page](http://localhost:8080/) a
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://localhost:8080/api/artists
+	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://api.localhost:8080/v1/artists
 
 Output:
 
@@ -106,7 +111,7 @@ The ID in the reply is created by your storage implementation, typically a wrapp
 
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"title":"Plastic Beach","songs":["On Melancholy Hill","Stylo"]}' http://localhost:8080/api/albums
+	curl -i -X POST -d '{"title":"Plastic Beach","songs":["On Melancholy Hill","Stylo"]}' http://api.localhost:8080/v1/albums
 
 Output:
 
@@ -117,18 +122,18 @@ Output:
 
 Retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/api/artists/1361703578
+	curl -i -X GET http://api.localhost:8080/v1/artists/1361703578
 
 Output:
 
 	HTTP/1.1 200 OK
 	[...]
 
-	{"resource":{"name":"Gorillaz","albums":[]}}
+	{"result":{"name":"Gorillaz","albums":[]}}
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
-	curl -i -X PUT -d '{"name":"Gorillaz","albums":["1361703700"]}' http://localhost:8080/api/artists/1361703578
+	curl -i -X PUT -d '{"name":"Gorillaz","albums":["1361703700"]}' http://api.localhost:8080/v1/artists/1361703578
 
 Output:
 
@@ -139,14 +144,14 @@ Output:
 
 Again, retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://localhost:8080/api/artists/1361703578
+	curl -i -X GET http://api.localhost:8080/v1/artists/1361703578
 
 Output:
 
 	HTTP/1.1 200 OK
 	[...]
 
-	{"resource":{"albums":["1361703700"],"name":"Gorillaz"}}
+	{"result":{"albums":["1361703700"],"name":"Gorillaz"}}
 
 
 Note the **returned HTTP codes**:
@@ -161,9 +166,9 @@ There are also
 
 Server responses are always a JSON object, containing zero or more of the following fields:
 
-- `"error"` – specifies the error that occured, if any
-- `"id"` – the ID of the newly created resource (only used when POSTing)
-- `"resource"` – the requested resource (used when GETting resources)
+- `"error"`: specifies the error that occured, if any
+- `"id"`: the ID of the newly created resource (only used when POSTing)
+- `"result"`: the requested resource (`GET /kind/id`) or an array of resources (`GET /kind/`)
 
 
 ## Documentation

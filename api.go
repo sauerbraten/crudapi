@@ -26,15 +26,21 @@ var s Storage
 func MountAPI(router *mux.Router, storage Storage) {
 	s = storage
 
-	// set up CRUD routes
+	// Create
 	router.HandleFunc("/{kind}", create).Methods("POST")
+
+	// Read
 	router.HandleFunc("/{kind}", getAll).Methods("GET")
 	router.HandleFunc("/{kind}/{id}", get).Methods("GET")
+
+	// Update
 	router.HandleFunc("/{kind}/{id}", update).Methods("PUT")
-	router.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
+
+	// Delete
+	router.HandleFunc("/{kind}", delAll).Methods("DELETE")
 	router.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
 
-	// set up OPTIONS routes for API discovery
+	// OPTIONS routes for API discovery
 	router.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
 	router.HandleFunc("/{kind}/{id}", optionsId).Methods("OPTIONS")
 }
@@ -76,6 +82,33 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	enc.Encode(apiResponse{"", id, nil})
 }
 
+func getAll(resp http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	kind := vars["kind"]
+	enc := json.NewEncoder(resp)
+
+	// look for resources
+	resources, stoErr := s.GetAll(kind)
+
+	// handle error
+	switch stoErr {
+	case KindNotFound:
+		resp.WriteHeader(http.StatusNotFound)
+		enc.Encode(apiResponse{"kind not found", "", nil})
+		return
+	case InternalError:
+		resp.WriteHeader(http.StatusInternalServerError)
+		enc.Encode(apiResponse{"storage failure", "", nil})
+		return
+	}
+
+	// return resources
+	err := enc.Encode(apiResponse{"", "", resources})
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func get(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
@@ -103,33 +136,6 @@ func get(resp http.ResponseWriter, req *http.Request) {
 
 	// return resource
 	err := enc.Encode(apiResponse{"", "", resource})
-	if err != nil {
-		log.Println(err)
-	}
-}
-
-func getAll(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	enc := json.NewEncoder(resp)
-
-	// look for resources
-	resources, stoErr := s.GetAll(kind)
-
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
-	}
-
-	// return resources
-	err := enc.Encode(apiResponse{"", "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -206,7 +212,7 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	enc.Encode(apiResponse{"", "", nil})
 }
 
-func deleteAll(resp http.ResponseWriter, req *http.Request) {
+func delAll(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	enc := json.NewEncoder(resp)
