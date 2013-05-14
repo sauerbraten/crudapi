@@ -22,44 +22,21 @@ type apiResponse struct {
 
 var s Storage
 
-// API exposes the CRUD handlers.
-type API struct {
-	// The generated CRUD routes. Pass this to http.ListenAndServe().
-	Router *mux.Router
-}
-
-// Returns an API relying on the given Storage. The path prefix must start with '/' and be 2 or more characters long. If those criteria are not met, "/api" is used as a fallback instead. Trailing slashes are stripped, like so: "/api///" → "/api".
-func NewAPI(pathPrefix string, sto Storage) *API {
-	s = sto
-
-	// validate path prefix
-	if len(pathPrefix) < 2 || pathPrefix[0] != '/' {
-		pathPrefix = "/api"
-	}
-
-	// strip trailing slashes
-	for pathPrefix[len(pathPrefix)-1] == '/' {
-		pathPrefix = pathPrefix[:len(pathPrefix)-1]
-	}
-
-	api := &API{mux.NewRouter()}
-	api.Router.StrictSlash(true)
-
-	r := api.Router.PathPrefix(pathPrefix).Subrouter()
+// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage.
+func MountAPI(router *mux.Router, storage Storage) {
+	s = storage
 
 	// set up CRUD routes
-	r.HandleFunc("/{kind}", create).Methods("POST")
-	r.HandleFunc("/{kind}", getAll).Methods("GET")
-	r.HandleFunc("/{kind}/{id}", get).Methods("GET")
-	r.HandleFunc("/{kind}/{id}", update).Methods("PUT")
-	r.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
-	r.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
+	router.HandleFunc("/{kind}", create).Methods("POST")
+	router.HandleFunc("/{kind}", getAll).Methods("GET")
+	router.HandleFunc("/{kind}/{id}", get).Methods("GET")
+	router.HandleFunc("/{kind}/{id}", update).Methods("PUT")
+	router.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
+	router.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
 
 	// set up OPTIONS routes for API discovery
-	r.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
-	r.HandleFunc("/{kind}/{id}", optionsId).Methods("OPTIONS")
-
-	return api
+	router.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
+	router.HandleFunc("/{kind}/{id}", optionsId).Methods("OPTIONS")
 }
 
 func create(resp http.ResponseWriter, req *http.Request) {
