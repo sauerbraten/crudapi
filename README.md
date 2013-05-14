@@ -46,8 +46,8 @@ This will create the following CRUD routes:
 
 It also adds OPTIONS routes for easy discovery of your API:
 
-- `OPTIONS /{kind}`: Returns "Allow: POST, GET, DELETE" in an HTTP header
-- `OPTIONS /{kind}/{id]`: Returns "Allow: PUT, GET, DELETE" in an HTTP header
+- `OPTIONS /{kind}`: Returns `Allow: POST, GET, DELETE` in an HTTP header
+- `OPTIONS /{kind}/{id]`: Returns `Allow: PUT, GET, DELETE` in an HTTP header
 
 Last but not least, pass the *mux.Router to your http server's `ListenAndServe()` as usual:
 
