@@ -72,7 +72,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// report success
-	resp.WriteHeader(201) // Created
+	resp.WriteHeader(http.StatusCreated)
 	enc.Encode(apiResponse{"", id, nil})
 }
 
