@@ -86,7 +86,7 @@ Put this code into a `main.go` file:
 
 		// start listening
 		log.Println("server listening on localhost:8080")
-		log.Println("API on api.localhost/v1/")
+		log.Println("API on api.localhost:8080/v1/")
 
 		err := http.ListenAndServe(":8080", r)
 		if err != nil {
