@@ -79,6 +79,8 @@ Put this code into a `main.go` file:
 
 		// router
 		r := mux.NewRouter()
+
+		// mounting the API
 		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s)
 
 		// custom handler
