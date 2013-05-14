@@ -55,6 +55,10 @@ func NewAPI(pathPrefix string, sto Storage) *API {
 	r.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
 	r.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
 
+	// set up OPTIONS routes for API discovery
+	r.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
+	r.HandleFunc("/{kind}/{id}", optionsId).Methods("OPTIONS")
+
 	return api
 }
 
@@ -70,7 +74,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Println(err)
-		resp.WriteHeader(400) // Bad Request
+		resp.WriteHeader(http.StatusBadRequest)
 		enc.Encode(apiResponse{"malformed json", "", nil})
 		return
 	}
@@ -81,11 +85,11 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
@@ -107,15 +111,15 @@ func get(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case ResourceNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"resource not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
@@ -138,11 +142,11 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
@@ -167,7 +171,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Println(err)
-		resp.WriteHeader(400) // Bad Request
+		resp.WriteHeader(http.StatusBadRequest)
 		enc.Encode(apiResponse{"malformed json", "", nil})
 		return
 	}
@@ -178,15 +182,15 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case ResourceNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"resource not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
@@ -208,15 +212,15 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case ResourceNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"resource not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
@@ -236,15 +240,30 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 	// handle error
 	switch stoErr {
 	case KindNotFound:
-		resp.WriteHeader(404) // Not Found
+		resp.WriteHeader(http.StatusNotFound)
 		enc.Encode(apiResponse{"kind not found", "", nil})
 		return
 	case InternalError:
-		resp.WriteHeader(500) // Internal Server Error
+		resp.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(apiResponse{"storage failure", "", nil})
 		return
 	}
 
 	// 200 OK is implied
 	enc.Encode(apiResponse{"", "", nil})
+}
+
+func optionsKind(resp http.ResponseWriter, req *http.Request) {
+	h := resp.Header()
+
+	h.Add("Allow", "POST")
+	h.Add("Allow", "GET")
+	h.Add("Allow", "DELETE")
+	h.Add("Allow", "OPTIONS")
+
+	resp.WriteHeader(http.StatusOK)
+}
+
+func optionsId(resp http.ResponseWriter, req *http.Request) {
+
 }
