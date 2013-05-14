@@ -26,32 +26,42 @@ Make sure your storage implementation is ready to handle the kinds of data you a
 	storage.AddMap("myothertype")
 
 Make sure that these are URL-safe, since you will access them as an URL path.  
-Now, create the actual API and pass it a path prefix and your storage:
+Next, create a `*mux.Router` and mount the API:
 
-	api := crudapi.NewAPI("/api", s)
+	router := mux.NewRouter()
+	crudapi.MountAPI(router, s)
 
-This will create the following routes:
+You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
-- `POST /api/{kind}` – Creates a resource of this *kind* and stores the data you POSTed, then returns the ID
-- `GET /api/{kind}` – Returns all resources of this *kind*
-- `GET /api/{kind}/{id}` – Returns the resource of this *kind* with that *id*
-- `PUT /api/{kind}/{id}` – Updates the resource of this *kind* with that *id*
-- `DELETE /api/{kind}` – Deletes all resources of this *kind*
-- `DELETE /api/{kind}/{id}` – Deletes the resource of this *kind* with that *id*
+	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), s)
 
-Last but not least, pass `api.Router` to your http server's `ListenAndServe()`, e.g.:
+This will create the following CRUD routes:
 
-	http.ListenAndServe(":8080", api.Router)
+- `POST /{kind}`: Creates a resource of this *kind* and stores the data you POSTed, then returns the ID
+- `GET /{kind}`: Returns all resources of this *kind*
+- `GET /{kind}/{id}`: Returns the resource of this *kind* with that *id*
+- `PUT /{kind}/{id}`: Updates the resource of this *kind* with that *id*
+- `DELETE /{kind}`: Deletes all resources of this *kind*
+- `DELETE /{kind}/{id}`: Deletes the resource of this *kind* with that *id*
 
-You can also define additional custom handlers, like so:
+It also adds OPTIONS routes for easy discovery of your API:
 
-	api.Router.HandleFunc("/", index)
-	api.Router.HandleFunc("/search", search)
+- `OPTIONS /{kind}`: Returns "Allow: POST, GET, DELETE" in an HTTP header
+- `OPTIONS /{kind}/{id]`: Returns "Allow: PUT, GET, DELETE" in an HTTP header
 
-Note: You should not define additional routes starting with the API's path prefix, since those will be interpreted by the API handlers and thus won't work for you. `api.Router` uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc); for example:
+Last but not least, pass the *mux.Router to your http server's `ListenAndServe()` as usual:
+
+	http.ListenAndServe(":8080", router)
+
+Since the API is mounted on top of your `router`, you can also define additional custom handlers, like so:
+
+	router.HandleFunc("/", index)
+	router.HandleFunc("/search", search)
+
+This package uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc); for example:
 
 	// javascript files
-	api.Router.Handle("/{fn:[a-z]+\\.js}", http.FileServer(http.Dir("js")))
+	api.Router.Handle("/{filename:[a-z]+\\.js}", http.FileServer(http.Dir("js")))
 
 
 ## Example
