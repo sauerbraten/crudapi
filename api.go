@@ -265,5 +265,12 @@ func optionsKind(resp http.ResponseWriter, req *http.Request) {
 }
 
 func optionsId(resp http.ResponseWriter, req *http.Request) {
+	h := resp.Header()
 
+	h.Add("Allow", "PUT")
+	h.Add("Allow", "GET")
+	h.Add("Allow", "DELETE")
+	h.Add("Allow", "OPTIONS")
+
+	resp.WriteHeader(http.StatusOK)
 }
