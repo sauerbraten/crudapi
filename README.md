@@ -168,9 +168,9 @@ Output:
 
 Note the **returned HTTP codes**. (Most of) these status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
 
-- `201 Created` when POSTing,
-- `200 OK` when GETting, PUTting and DELETEing.
-- `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or there is no resource with the specified ID. In that case a JSON object containing an `error` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
+- `201 Created` when creating,
+- `200 OK` when getting, updating and deleting.
+- `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or you tried to get a non-existant resource (with a wrong ID). In that case `MapStorage` also sets the error, which is then returned in the JSON response, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
 
 There is one status code that is not set by your `Storage`:
 
