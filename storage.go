@@ -2,8 +2,8 @@ package crudapi
 
 // A StorageResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occured, if any.
 type StorageResponse struct {
-	statusCode int
-	err        error
+	statusCode int   // the HTTP status code that is returned to the client
+	err        error // the error, if any
 }
 
 // Storage describes the methods required for a storage to be used with the API type.

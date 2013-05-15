@@ -166,14 +166,14 @@ Output:
 	{"result":{"albums":["1361703700"],"name":"Gorillaz"}}
 
 
-Note the **returned HTTP codes**:
+Note the **returned HTTP codes**. (Most of) these status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
 
 - `201 Created` when POSTing,
 - `200 OK` when GETting, PUTting and DELETEing.
-
-There are also
-
 - `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or there is no resource with the specified ID. In that case a JSON object containing an `error` field is returned, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
+
+There is one status code that is not set by your `Storage`:
+
 - `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are PUTting without an `id` in the URL.
 
 Server responses are always a JSON object, containing zero or more of the following fields:
