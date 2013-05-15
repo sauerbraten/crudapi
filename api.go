@@ -72,7 +72,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.Err.Error(), id, nil})
+	err = enc.Encode(apiResponse{stoResp.Err, id, nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -88,7 +88,7 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", resources})
+	err := enc.Encode(apiResponse{stoResp.Err, "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -105,7 +105,7 @@ func get(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", resource})
+	err := enc.Encode(apiResponse{stoResp.Err, "", resource})
 	if err != nil {
 		log.Println(err)
 	}
@@ -138,7 +138,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
+	err = enc.Encode(apiResponse{stoResp.Err, "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -156,7 +156,7 @@ func del(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
+	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -172,7 +172,7 @@ func delAll(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
+	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
 	if err != nil {
 		log.Println(err)
 	}

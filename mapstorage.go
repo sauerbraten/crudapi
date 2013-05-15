@@ -1,7 +1,6 @@
 package crudapi
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"sync"
@@ -41,7 +40,7 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp 
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
@@ -64,7 +63,7 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageRes
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
@@ -74,7 +73,7 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageRes
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("resource not found")
+		resp.Err = "resource not found"
 		return
 	}
 
@@ -89,7 +88,7 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageR
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
@@ -111,7 +110,7 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
@@ -121,7 +120,7 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("resource not found")
+		resp.Err = "resource not found"
 		return
 	}
 
@@ -141,7 +140,7 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
@@ -151,7 +150,7 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("resource not found")
+		resp.Err = "resource not found"
 		return
 	}
 
@@ -171,7 +170,7 @@ func (ms MapStorage) DeleteAll(kind string) (resp StorageResponse) {
 	ms.RUnlock()
 	if !ok {
 		resp.StatusCode = http.StatusNotFound
-		resp.Err = errors.New("kind not found")
+		resp.Err = "kind not found"
 		return
 	}
 
