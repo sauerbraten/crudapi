@@ -1,16 +1,10 @@
 package crudapi
 
-// A StorageError is returned by Storage's methods and describes what kind of error occured.
-type StorageError int
-
-const (
-	None             StorageError = iota // 0 means no error
-	InternalError                        // for internal errors, e.g. database connection errors
-	ResourceExists                       // resource already exists
-	ResourceNotFound                     // resource not found / no such resource
-	KindExists                           // kind already exists
-	KindNotFound                         // kind not found /no such kind
-)
+// A StorageResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occured, if any.
+type StorageResponse struct {
+	statusCode int
+	err        error
+}
 
 // Storage describes the methods required for a storage to be used with the API type.
 // When implementing your own storage, make sure that the methods are thread-safe.
@@ -20,20 +14,20 @@ type Storage interface {
 	// a interface{} is a resource (for example a JSON object or a database row with map indexes ~ column names)
 	//
 	// creates a resource and stores the data in it, then returns the ID
-	Create(string, interface{}) (string, StorageError)
+	Create(string, interface{}) (string, StorageResponse)
 
 	// retrieves a resource
-	Get(string, string) (interface{}, StorageError)
+	Get(string, string) (interface{}, StorageResponse)
 
 	// retrieves all resources of the specified kind
-	GetAll(string) ([]interface{}, StorageError)
+	GetAll(string) ([]interface{}, StorageResponse)
 
 	// updates a resource
-	Update(string, string, interface{}) StorageError
+	Update(string, string, interface{}) StorageResponse
 
 	// deletes a resource
-	Delete(string, string) StorageError
+	Delete(string, string) StorageResponse
 
 	// delete all resources of a kind
-	DeleteAll(string) StorageError
+	DeleteAll(string) StorageResponse
 }

@@ -1,6 +1,8 @@
 package crudapi
 
 import (
+	"errors"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -19,45 +21,27 @@ func NewMapStorage() MapStorage {
 }
 
 // Adds a interface{} to the root level map. Equivalent to a database table.
-func (ms MapStorage) AddMap(kind string) StorageError {
-	// check if kind already exists
-	ms.RLock()
-	_, ok := ms.data[kind]
-	ms.RUnlock()
-	if ok {
-		return KindExists
-	}
-
+func (ms MapStorage) AddMap(kind string) {
 	ms.Lock()
 	ms.data[kind] = make(map[string]interface{})
 	ms.Unlock()
-
-	return None
 }
 
 // Reverts AddMap().
-func (ms MapStorage) DeleteMap(kind string) StorageError {
-	// make sure kind exists
-	ms.RLock()
-	_, ok := ms.data[kind]
-	ms.RUnlock()
-	if !ok {
-		return KindNotFound
-	}
-
+func (ms MapStorage) DeleteMap(kind string) {
 	ms.Lock()
 	delete(ms.data, kind)
 	ms.Unlock()
-
-	return None
 }
 
-func (ms MapStorage) Create(kind string, resource interface{}) (id string, err StorageError) {
+func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
 		return
 	}
 
@@ -69,16 +53,18 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, err S
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
+	resp.statusCode = http.StatusCreated
 	return
 }
 
-func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageError) {
+func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		err = KindNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
 		return
 	}
 
@@ -87,20 +73,23 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, err StorageErro
 	resource, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		err = ResourceNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("resource not found")
 		return
 	}
 
+	resp.statusCode = http.StatusOK
 	return
 }
 
-func (ms MapStorage) GetAll(kind string) (resources []interface{}, err StorageError) {
+func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		err = KindNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
 		return
 	}
 
@@ -111,16 +100,19 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, err StorageEr
 	}
 	ms.RUnlock()
 
+	resp.statusCode = http.StatusOK
 	return
 }
 
-func (ms MapStorage) Update(kind, id string, resource interface{}) StorageError {
+func (ms MapStorage) Update(kind, id string, resource interface{}) (resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		return KindNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
+		return
 	}
 
 	// make sure the resource exists
@@ -128,7 +120,9 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) StorageError 
 	_, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		return ResourceNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("resource not found")
+		return
 	}
 
 	// update resource
@@ -136,16 +130,19 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) StorageError 
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
-	return None
+	resp.statusCode = http.StatusOK
+	return
 }
 
-func (ms MapStorage) Delete(kind, id string) StorageError {
+func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		return KindNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
+		return
 	}
 
 	// make sure the resource exists
@@ -153,7 +150,9 @@ func (ms MapStorage) Delete(kind, id string) StorageError {
 	_, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		return ResourceNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("resource not found")
+		return
 	}
 
 	// delete resource
@@ -161,16 +160,19 @@ func (ms MapStorage) Delete(kind, id string) StorageError {
 	delete(ms.data[kind], id)
 	ms.Unlock()
 
-	return None
+	resp.statusCode = http.StatusOK
+	return
 }
 
-func (ms MapStorage) DeleteAll(kind string) StorageError {
+func (ms MapStorage) DeleteAll(kind string) (resp StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		return KindNotFound
+		resp.statusCode = http.StatusNotFound
+		resp.err = errors.New("kind not found")
+		return
 	}
 
 	// delete resources
@@ -180,5 +182,6 @@ func (ms MapStorage) DeleteAll(kind string) StorageError {
 	}
 	ms.Unlock()
 
-	return None
+	resp.statusCode = http.StatusOK
+	return
 }

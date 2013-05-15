@@ -57,29 +57,25 @@ func create(resp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.Println(err)
+
 		resp.WriteHeader(http.StatusBadRequest)
-		enc.Encode(apiResponse{"malformed json", "", nil})
+		err = enc.Encode(apiResponse{"malformed json", "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
 		return
 	}
 
 	// set in storage
-	id, stoErr := s.Create(kind, resource)
+	id, stoResp := s.Create(kind, resource)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err = enc.Encode(apiResponse{stoResp.err.Error(), id, nil})
+	if err != nil {
+		log.Println(err)
 	}
-
-	// report success
-	resp.WriteHeader(http.StatusCreated)
-	enc.Encode(apiResponse{"", id, nil})
 }
 
 func getAll(resp http.ResponseWriter, req *http.Request) {
@@ -88,22 +84,11 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 	enc := json.NewEncoder(resp)
 
 	// look for resources
-	resources, stoErr := s.GetAll(kind)
+	resources, stoResp := s.GetAll(kind)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
-	}
-
-	// return resources
-	err := enc.Encode(apiResponse{"", "", resources})
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err := enc.Encode(apiResponse{stoResp.err.Error(), "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -116,26 +101,11 @@ func get(resp http.ResponseWriter, req *http.Request) {
 	enc := json.NewEncoder(resp)
 
 	// look for resource
-	resource, stoErr := s.Get(kind, id)
+	resource, stoResp := s.Get(kind, id)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case ResourceNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"resource not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
-	}
-
-	// return resource
-	err := enc.Encode(apiResponse{"", "", resource})
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err := enc.Encode(apiResponse{stoResp.err.Error(), "", resource})
 	if err != nil {
 		log.Println(err)
 	}
@@ -155,31 +125,23 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 		resp.WriteHeader(http.StatusBadRequest)
-		enc.Encode(apiResponse{"malformed json", "", nil})
+		err = enc.Encode(apiResponse{"malformed json", "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
 		return
 	}
 
 	// update resource
-	stoErr := s.Update(kind, id, resource)
+	stoResp := s.Update(kind, id, resource)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case ResourceNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"resource not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err = enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	if err != nil {
+		log.Println(err)
 	}
-
-	// 200 OK is implied
-	enc.Encode(apiResponse{"", "", nil})
 }
 
 // delete() is a built-in function for maps, thus the shorthand name 'del' for this handler function
@@ -190,26 +152,14 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	enc := json.NewEncoder(resp)
 
 	// delete resource
-	stoErr := s.Delete(kind, id)
+	stoResp := s.Delete(kind, id)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case ResourceNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"resource not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err := enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	if err != nil {
+		log.Println(err)
 	}
-
-	// 200 OK is implied
-	enc.Encode(apiResponse{"", "", nil})
 }
 
 func delAll(resp http.ResponseWriter, req *http.Request) {
@@ -218,22 +168,14 @@ func delAll(resp http.ResponseWriter, req *http.Request) {
 	enc := json.NewEncoder(resp)
 
 	// look for resources
-	stoErr := s.DeleteAll(kind)
+	stoResp := s.DeleteAll(kind)
 
-	// handle error
-	switch stoErr {
-	case KindNotFound:
-		resp.WriteHeader(http.StatusNotFound)
-		enc.Encode(apiResponse{"kind not found", "", nil})
-		return
-	case InternalError:
-		resp.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(apiResponse{"storage failure", "", nil})
-		return
+	// write response
+	resp.WriteHeader(stoResp.statusCode)
+	err := enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	if err != nil {
+		log.Println(err)
 	}
-
-	// 200 OK is implied
-	enc.Encode(apiResponse{"", "", nil})
 }
 
 func optionsKind(resp http.ResponseWriter, req *http.Request) {
