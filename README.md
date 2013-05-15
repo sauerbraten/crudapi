@@ -16,7 +16,7 @@ Import the package:
 		"github.com/sauerbraten/crudapi"
 	)
 
-You need to specify where you want to store data. You have to implement `[crudapi.Storage](http://godoc.org/github.com/sauerbraten/crudapi#Storage)` for that purpose. There is an example implementation of that interface using maps, which we will use here:
+You need to specify where you want to store data. You have to implement [`crudapi.Storage`](http://godoc.org/github.com/sauerbraten/crudapi#Storage) for that purpose. There is an example implementation of that interface using maps, which we will use here:
 
 	storage := crudapi.NewMapStorage()
 
