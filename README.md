@@ -26,7 +26,7 @@ Make sure your storage implementation is ready to handle the kinds of data you a
 	storage.AddMap("myothertype")
 
 Make sure that these are URL-safe, since you will access them as an URL path.  
-Next, create a `*mux.Router` and mount the API:
+Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
 	crudapi.MountAPI(router, storage)
