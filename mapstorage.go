@@ -40,8 +40,8 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp 
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -53,7 +53,7 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp 
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
-	resp.statusCode = http.StatusCreated
+	resp.StatusCode = http.StatusCreated
 	return
 }
 
@@ -63,8 +63,8 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageRes
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -73,12 +73,12 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageRes
 	resource, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("resource not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("resource not found")
 		return
 	}
 
-	resp.statusCode = http.StatusOK
+	resp.StatusCode = http.StatusOK
 	return
 }
 
@@ -88,8 +88,8 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageR
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -100,7 +100,7 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageR
 	}
 	ms.RUnlock()
 
-	resp.statusCode = http.StatusOK
+	resp.StatusCode = http.StatusOK
 	return
 }
 
@@ -110,8 +110,8 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -120,8 +120,8 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	_, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("resource not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("resource not found")
 		return
 	}
 
@@ -130,7 +130,7 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	ms.data[kind][id] = resource
 	ms.Unlock()
 
-	resp.statusCode = http.StatusOK
+	resp.StatusCode = http.StatusOK
 	return
 }
 
@@ -140,8 +140,8 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -150,8 +150,8 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	_, ok = ms.data[kind][id]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("resource not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("resource not found")
 		return
 	}
 
@@ -160,7 +160,7 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	delete(ms.data[kind], id)
 	ms.Unlock()
 
-	resp.statusCode = http.StatusOK
+	resp.StatusCode = http.StatusOK
 	return
 }
 
@@ -170,8 +170,8 @@ func (ms MapStorage) DeleteAll(kind string) (resp StorageResponse) {
 	_, ok := ms.data[kind]
 	ms.RUnlock()
 	if !ok {
-		resp.statusCode = http.StatusNotFound
-		resp.err = errors.New("kind not found")
+		resp.StatusCode = http.StatusNotFound
+		resp.Err = errors.New("kind not found")
 		return
 	}
 
@@ -182,6 +182,6 @@ func (ms MapStorage) DeleteAll(kind string) (resp StorageResponse) {
 	}
 	ms.Unlock()
 
-	resp.statusCode = http.StatusOK
+	resp.StatusCode = http.StatusOK
 	return
 }

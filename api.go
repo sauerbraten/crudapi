@@ -71,8 +71,8 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	id, stoResp := s.Create(kind, resource)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err = enc.Encode(apiResponse{stoResp.err.Error(), id, nil})
+	resp.WriteHeader(stoResp.StatusCode)
+	err = enc.Encode(apiResponse{stoResp.Err.Error(), id, nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -87,8 +87,8 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 	resources, stoResp := s.GetAll(kind)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err := enc.Encode(apiResponse{stoResp.err.Error(), "", resources})
+	resp.WriteHeader(stoResp.StatusCode)
+	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -104,8 +104,8 @@ func get(resp http.ResponseWriter, req *http.Request) {
 	resource, stoResp := s.Get(kind, id)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err := enc.Encode(apiResponse{stoResp.err.Error(), "", resource})
+	resp.WriteHeader(stoResp.StatusCode)
+	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", resource})
 	if err != nil {
 		log.Println(err)
 	}
@@ -137,8 +137,8 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	stoResp := s.Update(kind, id, resource)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err = enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	resp.WriteHeader(stoResp.StatusCode)
+	err = enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -155,8 +155,8 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	stoResp := s.Delete(kind, id)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err := enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	resp.WriteHeader(stoResp.StatusCode)
+	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -171,8 +171,8 @@ func delAll(resp http.ResponseWriter, req *http.Request) {
 	stoResp := s.DeleteAll(kind)
 
 	// write response
-	resp.WriteHeader(stoResp.statusCode)
-	err := enc.Encode(apiResponse{stoResp.err.Error(), "", nil})
+	resp.WriteHeader(stoResp.StatusCode)
+	err := enc.Encode(apiResponse{stoResp.Err.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
