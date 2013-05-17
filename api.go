@@ -27,25 +27,25 @@ func MountAPI(router *mux.Router, storage Storage) {
 	s = storage
 
 	// Create
-	router.HandleFunc("/{kind}", createOne).Methods("POST")
+	router.HandleFunc("/{kind}", create).Methods("POST")
 
 	// Read
-	router.HandleFunc("/{kind}", readAll).Methods("GET")
-	router.HandleFunc("/{kind}/{id}", readOne).Methods("GET")
+	router.HandleFunc("/{kind}", getAll).Methods("GET")
+	router.HandleFunc("/{kind}/{id}", get).Methods("GET")
 
 	// Update
-	router.HandleFunc("/{kind}/{id}", updateOne).Methods("PUT")
+	router.HandleFunc("/{kind}/{id}", update).Methods("PUT")
 
 	// Delete
 	router.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
-	router.HandleFunc("/{kind}/{id}", deleteOne).Methods("DELETE")
+	router.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
 
 	// OPTIONS routes for API discovery
-	router.HandleFunc("/{kind}", optionsAll).Methods("OPTIONS")
-	router.HandleFunc("/{kind}/{id}", optionsOne).Methods("OPTIONS")
+	router.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
+	router.HandleFunc("/{kind}/{id}", optionsResource).Methods("OPTIONS")
 }
 
-func createOne(resp http.ResponseWriter, req *http.Request) {
+func create(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	enc := json.NewEncoder(resp)
@@ -78,7 +78,7 @@ func createOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func readAll(resp http.ResponseWriter, req *http.Request) {
+func getAll(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	enc := json.NewEncoder(resp)
@@ -94,7 +94,7 @@ func readAll(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func readOne(resp http.ResponseWriter, req *http.Request) {
+func get(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -111,7 +111,7 @@ func readOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func updateOne(resp http.ResponseWriter, req *http.Request) {
+func update(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -160,7 +160,8 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func deleteOne(resp http.ResponseWriter, req *http.Request) {
+// delete() is a built-in function, thus del() is used here
+func del(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -177,7 +178,7 @@ func deleteOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func optionsOne(resp http.ResponseWriter, req *http.Request) {
+func optionsKind(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
 	h.Add("Allow", "PUT")
@@ -188,7 +189,7 @@ func optionsOne(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 }
 
-func optionsAll(resp http.ResponseWriter, req *http.Request) {
+func optionsResource(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
 	h.Add("Allow", "POST")
