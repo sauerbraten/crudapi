@@ -180,7 +180,7 @@ func deleteOne(resp http.ResponseWriter, req *http.Request) {
 func optionsOne(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
-	h.Add("Allow", "POST")
+	h.Add("Allow", "PUT")
 	h.Add("Allow", "GET")
 	h.Add("Allow", "DELETE")
 	h.Add("Allow", "OPTIONS")
@@ -191,7 +191,7 @@ func optionsOne(resp http.ResponseWriter, req *http.Request) {
 func optionsAll(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
-	h.Add("Allow", "PUT")
+	h.Add("Allow", "POST")
 	h.Add("Allow", "GET")
 	h.Add("Allow", "DELETE")
 	h.Add("Allow", "OPTIONS")
