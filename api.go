@@ -27,25 +27,25 @@ func MountAPI(router *mux.Router, storage Storage) {
 	s = storage
 
 	// Create
-	router.HandleFunc("/{kind}", CreateOne).Methods("POST")
+	router.HandleFunc("/{kind}", createOne).Methods("POST")
 
 	// Read
-	router.HandleFunc("/{kind}", ReadAll).Methods("GET")
-	router.HandleFunc("/{kind}/{id}", ReadOne).Methods("GET")
+	router.HandleFunc("/{kind}", readAll).Methods("GET")
+	router.HandleFunc("/{kind}/{id}", readOne).Methods("GET")
 
 	// Update
-	router.HandleFunc("/{kind}/{id}", UpdateOne).Methods("PUT")
+	router.HandleFunc("/{kind}/{id}", updateOne).Methods("PUT")
 
 	// Delete
-	router.HandleFunc("/{kind}", DeleteAll).Methods("DELETE")
-	router.HandleFunc("/{kind}/{id}", DeleteOne).Methods("DELETE")
+	router.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
+	router.HandleFunc("/{kind}/{id}", deleteOne).Methods("DELETE")
 
 	// OPTIONS routes for API discovery
-	router.HandleFunc("/{kind}", OptionsAll).Methods("OPTIONS")
-	router.HandleFunc("/{kind}/{id}", OptionsOne).Methods("OPTIONS")
+	router.HandleFunc("/{kind}", optionsAll).Methods("OPTIONS")
+	router.HandleFunc("/{kind}/{id}", optionsOne).Methods("OPTIONS")
 }
 
-func CreateOne(resp http.ResponseWriter, req *http.Request) {
+func createOne(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	enc := json.NewEncoder(resp)
@@ -78,7 +78,7 @@ func CreateOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ReadAll(resp http.ResponseWriter, req *http.Request) {
+func readAll(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	enc := json.NewEncoder(resp)
@@ -94,7 +94,7 @@ func ReadAll(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ReadOne(resp http.ResponseWriter, req *http.Request) {
+func readOne(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -111,7 +111,7 @@ func ReadOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func UpdateOne(resp http.ResponseWriter, req *http.Request) {
+func updateOne(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -144,7 +144,23 @@ func UpdateOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func DeleteOne(resp http.ResponseWriter, req *http.Request) {
+func deleteAll(resp http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	kind := vars["kind"]
+	enc := json.NewEncoder(resp)
+
+	// look for resources
+	stoResp := s.DeleteAll(kind)
+
+	// write response
+	resp.WriteHeader(stoResp.StatusCode)
+	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func deleteOne(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
@@ -161,23 +177,7 @@ func DeleteOne(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func DeleteAll(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	enc := json.NewEncoder(resp)
-
-	// look for resources
-	stoResp := s.DeleteAll(kind)
-
-	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
-	if err != nil {
-		log.Println(err)
-	}
-}
-
-func OptionsOne(resp http.ResponseWriter, req *http.Request) {
+func optionsOne(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
 	h.Add("Allow", "POST")
@@ -188,7 +188,7 @@ func OptionsOne(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 }
 
-func OptionsAll(resp http.ResponseWriter, req *http.Request) {
+func optionsAll(resp http.ResponseWriter, req *http.Request) {
 	h := resp.Header()
 
 	h.Add("Allow", "PUT")
