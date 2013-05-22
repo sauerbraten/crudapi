@@ -18,7 +18,7 @@ func main() {
 	s.AddMap("albums")
 
 	// guard
-	g := MapGuard{map[string][]string{
+	g := MapGuard{map[string][]crudapi.Action{
 		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
 		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
 	}}
