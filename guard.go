@@ -4,13 +4,16 @@ import (
 	"net/url"
 )
 
+type Action int
+
 const (
-	ActionCreate    = "create"
-	ActionGet       = "get"
-	ActionGetAll    = "getAll"
-	ActionUpdate    = "update"
-	ActionDelete    = "delete"
-	ActionDeleteAll = "deleteAll"
+	_ Action = iota
+	ActionCreate
+	ActionGet
+	ActionGetAll
+	ActionUpdate
+	ActionDelete
+	ActionDeleteAll
 )
 
 // An GuardResponse is returned by the AuthenticateAndAuthorize method. It describes wether the client could be authenticated, the request could be authorized, and what kind of error occured, if any.
@@ -23,12 +26,12 @@ type GuardResponse struct {
 // A guard authenticates users and authorizes their requests.
 type Guard interface {
 	// Tries to authenticate a client and authorize their request using the action (one of the Action* constants) they want to perform, the kind of resource it wants to perform the action on, and the url parameters (e.g. using API keys or signed requests).
-	AuthenticateAndAuthorize(action string, kind string, params url.Values) GuardResponse
+	AuthenticateAndAuthorize(action Action, kind string, params url.Values) GuardResponse
 }
 
 // default guard; allows everyone to do everything
 type defaultGuard struct{}
 
-func (d defaultGuard) AuthenticateAndAuthorize(action string, kind string, params url.Values) GuardResponse {
+func (d defaultGuard) AuthenticateAndAuthorize(action Action, kind string, params url.Values) GuardResponse {
 	return GuardResponse{true, true, ""}
 }
