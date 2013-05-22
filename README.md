@@ -138,15 +138,19 @@ Output:
 	{"result":{"albums":["1361703700"],"name":"Gorillaz"}}
 
 
-Note the **returned HTTP codes**. (Most of) these status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
+Note the **returned HTTP codes**. Those status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
 
 - `201 Created` when creating,
 - `200 OK` when getting, updating and deleting.
 - `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or you tried to get a non-existant resource (with a wrong ID). In that case `MapStorage` also sets the error, which is then returned in the JSON response, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
 
-There is one status code that is not set by your `Storage`:
+There are a few status codes that are not set by your `Storage`, but the API handlers themselves:
 
 - `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are PUTting without an `id` in the URL.
+- `401 Unauthorized` when authentication failed. This status code is used slightly different from its original definition in the HTTP protocol, in that it does not include the `WWW-Authenticate` header field in the response, since the API does not support HTTP Basic Authentication.
+- `403 Forbidden` is used when authentication was successful, but the client is not authorized to perform the specified action on the specified resource(s).
+
+The `401 Unauthorized` status code is slightly misleading, and should actually mean `401 Unauthenticated`, since it asks for authentication, and not authorization.
 
 Server responses are always a JSON object, containing zero or more of the following fields:
 
