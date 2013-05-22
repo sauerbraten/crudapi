@@ -27,7 +27,17 @@ Make sure your storage implementation is ready to handle the kinds of data you a
 
 Make sure that these are URL-safe, since you will access them as an URL path.
 
-You also need to specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to you API).
+You can also specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to you API). If you pass `nil` as guard, a default guard will be used with no restrictions of any kind. This meands everyone can do everything on your API!
+
+For example, you can use the example guard which uses a simple map to describe valid (= allowed) actions for each kind:
+
+	g := crudapi.MapGuard{map[string][]string{
+		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
+		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
+	}}
+
+This code allows artist resources to be created, updated, and read one-by-one, and album resources to be created, updated, read one-by-one and read all at once. The example guard does not authenticate clients, though, meaning everybody can still perform those valid actions.
+
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
@@ -89,8 +99,8 @@ Put this code into a `main.go` file:
 		s.AddMap("artists")
 		s.AddMap("albums")
 
-		// authenticator
-		a := crudapi.MapAuthenticator{map[string][]string{
+		// guard
+		g := crudapi.MapGuard{map[string][]string{
 			"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
 			"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
 		}}
@@ -99,7 +109,7 @@ Put this code into a `main.go` file:
 		r := mux.NewRouter()
 
 		// mounting the API
-		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s, a)
+		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s, g)
 
 		// custom handler
 		r.HandleFunc("/", hello)

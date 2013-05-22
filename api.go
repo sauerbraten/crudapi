@@ -23,7 +23,7 @@ type apiResponse struct {
 var s Storage
 var g Guard
 
-// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. If authenticator is nil, all requests are allowed by default.
+// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. If guard is nil, all requests are allowed by default.
 func MountAPI(router *mux.Router, storage Storage, guard Guard) {
 	s = storage
 	if s == nil {
