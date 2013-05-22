@@ -5,34 +5,35 @@ import (
 )
 
 // A CRUD action. See constants for predefined actions.
-type Action int
+type Action string
 
 const (
-	_ Action = iota
-	ActionCreate
-	ActionGet
-	ActionGetAll
-	ActionUpdate
-	ActionDelete
-	ActionDeleteAll
+	ActionCreate    Action = "create"
+	ActionGet       Action = "get"
+	ActionGetAll    Action = "get all"
+	ActionUpdate    Action = "update"
+	ActionDelete    Action = "delete"
+	ActionDeleteAll Action = "delete all"
 )
-
-// An GuardResponse is returned by the AuthenticateAndAuthorize method. It describes wether the client could be authenticated, the request could be authorized, and what kind of error occured, if any.
-type GuardResponse struct {
-	Authenticated bool   // true if the client could be authenticated (e.g. the API key is valid or the signed request checked out)
-	Allowed       bool   // true if the client is allowed to perform the action
-	ErrorMessage  string // the error, if any
-}
 
 // A guard authenticates users and authorizes their requests.
 type Guard interface {
-	// Tries to authenticate a client and authorize their request using the action (one of the Action* constants) they want to perform, the kind of resource it wants to perform the action on, and the url parameters (e.g. using API keys or signed requests).
-	AuthenticateAndAuthorize(action Action, kind string, params url.Values) GuardResponse
+	// Tries to authenticate a client (e.g. using API keys or signed requests). Returns wether the client could be authenticated, a string which will be passed to Guard.Authorize() and should be used to set levels of permissions, or per-user-permissions, and an error message in case of an error or in case the client could not be authenticated.
+	Authenticate(params url.Values) (ok bool, client string, errorMessage string)
+
+	// Tries to authorize the action (one of the Action* constants) to be performed on the kind of resource by the client. Returns wether the action is authorized, and if not, an error message to be sent back to the client.
+	Authorize(client string, action Action, kind string) (ok bool, errorMessage string)
 }
 
 // default guard; allows everyone to do everything
 type defaultGuard struct{}
 
-func (d defaultGuard) AuthenticateAndAuthorize(action Action, kind string, params url.Values) GuardResponse {
-	return GuardResponse{true, true, ""}
+func (d defaultGuard) Authenticate(params url.Values) (ok bool, client string, errorMessage string) {
+	ok = true
+	return
+}
+
+func (d defaultGuard) Authorize(client string, action Action, kind string) (ok bool, errorMessage string) {
+	ok = true
+	return
 }

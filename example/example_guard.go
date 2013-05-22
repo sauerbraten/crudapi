@@ -5,15 +5,19 @@ import (
 	"net/url"
 )
 
+// no authentication; only valid actions are authorized
 type MapGuard struct {
 	ValidActions map[string][]crudapi.Action
 }
 
-// no authentication; only valid actions are authorized
-func (a MapGuard) AuthenticateAndAuthorize(action crudapi.Action, kind string, params url.Values) crudapi.GuardResponse {
-	for _, validAction := range a.ValidActions[kind] {
+func (mg MapGuard) Authenticate(params url.Values) crudapi.AuthenticationResponse {
+	return crudapi.AuthenticationResponse{true, "", ""}
+}
+
+func (mg MapGuard) Authorize(client string, action crudapi.Action, kind string) crudapi.AuthorizationResponse {
+	for _, validAction := range mg.ValidActions[kind] {
 		if validAction == action {
-			return crudapi.GuardResponse{true, true, ""}
+			return crudapi.AuthorizationResponse{true, true, ""}
 		}
 	}
 

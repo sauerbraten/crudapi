@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 type apiResponse struct {
@@ -54,35 +55,58 @@ func MountAPI(router *mux.Router, storage Storage, guard Guard) {
 	router.HandleFunc("/{kind}/{id}", optionsResource).Methods("OPTIONS")
 }
 
-func create(resp http.ResponseWriter, req *http.Request) {
+// initializes variables needed to handle every request and authenticates and authorizes the request
+func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (authenticatedAndAuthorized bool, kind string, enc *json.Encoder) {
 	vars := mux.Vars(req)
-	kind := vars["kind"]
+	kind = vars["kind"]
 	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-	dec := json.NewDecoder(req.Body)
+	enc = json.NewEncoder(resp)
 
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionCreate, kind, params)
-	if !guardResp.Authenticated {
+	authenticatedAndAuthorized = authenticateAndAuthorize(action, vars["kind"], params, resp, enc)
+
+	return
+}
+
+// authenticate request and authorize action
+func authenticateAndAuthorize(action Action, kind string, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
+	authenticated, client, errorMessage := g.Authenticate(params)
+	if !authenticated {
+		log.Println("unauthenticated request:\n\tURL parameters:", params, "\n\terror message:", errorMessage)
+
 		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		err := enc.Encode(apiResponse{errorMessage, "", nil})
 		if err != nil {
 			log.Println(err)
 		}
 
 		return
 	}
-	if !guardResp.Allowed {
+
+	authorized, errorMessage := g.Authorize(client, action, kind)
+	if !authorized {
+		log.Println("unauthorized request:\n\tclient:", client, "\n\taction:", action, "kind:", kind, "\n\terror message", errorMessage)
+
 		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		err := enc.Encode(apiResponse{errorMessage, "", nil})
 		if err != nil {
 			log.Println(err)
 		}
 
+		return
+	}
+
+	ok = true
+	return
+}
+
+func create(resp http.ResponseWriter, req *http.Request) {
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionCreate)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// read body and parse into interface{}
+	dec := json.NewDecoder(req.Body)
 	var resource map[string]interface{}
 	err := dec.Decode(&resource)
 
@@ -110,29 +134,8 @@ func create(resp http.ResponseWriter, req *http.Request) {
 }
 
 func getAll(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionGetAll, kind, params)
-	if !guardResp.Authenticated {
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-	if !guardResp.Allowed {
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionGetAll)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
@@ -148,34 +151,13 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 }
 
 func get(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	id := vars["id"]
-	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionGet, kind, params)
-	if !guardResp.Authenticated {
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-	if !guardResp.Allowed {
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionGet)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// look for resource
+	id := mux.Vars(req)["id"]
 	resource, stoResp := s.Get(kind, id)
 
 	// write response
@@ -187,35 +169,13 @@ func get(resp http.ResponseWriter, req *http.Request) {
 }
 
 func update(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	id := vars["id"]
-	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-	dec := json.NewDecoder(req.Body)
-
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionUpdate, kind, params)
-	if !guardResp.Authenticated {
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-	if !guardResp.Allowed {
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionUpdate)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// read body and parse into interface{}
+	dec := json.NewDecoder(req.Body)
 	var resource map[string]interface{}
 	err := dec.Decode(&resource)
 
@@ -231,6 +191,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// update resource
+	id := mux.Vars(req)["id"]
 	stoResp := s.Update(kind, id, resource)
 
 	// write response
@@ -242,29 +203,8 @@ func update(resp http.ResponseWriter, req *http.Request) {
 }
 
 func deleteAll(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionDeleteAll, kind, params)
-	if !guardResp.Authenticated {
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-	if !guardResp.Allowed {
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionDeleteAll)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
@@ -281,34 +221,13 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 
 // delete() is a built-in function, thus del() is used here
 func del(resp http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	kind := vars["kind"]
-	id := vars["id"]
-	params := req.URL.Query()
-	enc := json.NewEncoder(resp)
-
-	// authenticate request
-	guardResp := g.AuthenticateAndAuthorize(ActionDelete, kind, params)
-	if !guardResp.Authenticated {
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-	if !guardResp.Allowed {
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
+	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionDelete)
+	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// delete resource
+	id := mux.Vars(req)["id"]
 	stoResp := s.Delete(kind, id)
 
 	// write response
