@@ -31,9 +31,9 @@ Make sure that these are URL-safe, since you will access them as an URL path.
 
 ### Authentication & Authorization
 
-You can also specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to you API). If you pass `nil` as guard, a default guard will be used with no restrictions of any kind. This meands everyone can do everything on your API!
+You can also specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to your API). If you use `nil` as guard, a default guard will be used with no restrictions of any kind.
 
-For example, you can use the example guard which uses a simple map to describe valid (= allowed) actions for each kind:
+Again, there is an example guard implemenatation which uses a simple map to describe valid (= allowed) actions for each kind:
 
 	guard := MapGuard{map[string][]string{
 		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
@@ -41,6 +41,14 @@ For example, you can use the example guard which uses a simple map to describe v
 	}}
 
 This code allows artist resources to be created, updated, and read one-by-one, and album resources to be created, updated, read one-by-one and read all at once. The example guard does not authenticate clients, though, meaning everybody can still perform those valid actions.
+
+#### Authentication vs. Authorization
+
+To clarify what is meant with these two words in the context of this package:
+
+Authentication simply means identifying the client that sent the request and allowing or disallowing access on the sole basis of *who*.
+
+Authorization means to check if the client is allowed to perform a specific action on a specific (set of) resource(s). In other words, it means allowing or disallowing access on the basis of *who* wants do to *what* (*what* being "performing an *action* to a *target*").
 
 ### Routing
 
