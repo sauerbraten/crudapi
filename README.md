@@ -48,7 +48,7 @@ To clarify what is meant with these two words in the context of this package:
 
 Authentication simply means identifying the client that sent the request and allowing or disallowing access on the sole basis of *who*.
 
-Authorization means to check if the client is allowed to perform a specific action on a specific (set of) resource(s). In other words, it means allowing or disallowing access on the basis of *who* wants do to *what* (*what* being "performing an *action* to a *target*").
+Authorization means to check if the client is allowed to perform a specific action on a specific (set of) resource(s). In other words, it means allowing or disallowing access on the basis of *who* wants do to *what* (what being "performing an *action* to a *target*").
 
 ### Routing
 
