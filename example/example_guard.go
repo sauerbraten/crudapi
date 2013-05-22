@@ -10,16 +10,19 @@ type MapGuard struct {
 	ValidActions map[string][]crudapi.Action
 }
 
-func (mg MapGuard) Authenticate(params url.Values) crudapi.AuthenticationResponse {
-	return crudapi.AuthenticationResponse{true, "", ""}
+func (mg MapGuard) Authenticate(params url.Values) (ok bool, client string, errorMessage string) {
+	ok = true
+	return
 }
 
-func (mg MapGuard) Authorize(client string, action crudapi.Action, kind string) crudapi.AuthorizationResponse {
+func (mg MapGuard) Authorize(client string, action crudapi.Action, kind string) (ok bool, errorMessage string) {
 	for _, validAction := range mg.ValidActions[kind] {
 		if validAction == action {
-			return crudapi.AuthorizationResponse{true, true, ""}
+			ok = true
+			return
 		}
 	}
 
-	return crudapi.GuardResponse{true, false, "action not allowed for this kind of resource"}
+	errorMessage = "action not allowed for this kind of resource"
+	return
 }
