@@ -31,7 +31,7 @@ You can also specify who is allowed to do what with your resources. For this, th
 
 For example, you can use the example guard which uses a simple map to describe valid (= allowed) actions for each kind:
 
-	g := MapGuard{map[string][]string{
+	guard := MapGuard{map[string][]string{
 		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
 		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
 	}}
@@ -45,7 +45,7 @@ Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/p
 
 You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
-	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage)
+	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage, guard)
 
 This will create the following CRUD routes:
 
