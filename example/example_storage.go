@@ -1,6 +1,7 @@
-package crudapi
+package main
 
 import (
+	"github.com/sauerbraten/crudapi"
 	"net/http"
 	"strconv"
 	"sync"
@@ -33,7 +34,7 @@ func (ms MapStorage) DeleteMap(kind string) {
 	ms.Unlock()
 }
 
-func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp StorageResponse) {
+func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -56,7 +57,7 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp 
 	return
 }
 
-func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageResponse) {
+func (ms MapStorage) Get(kind, id string) (resource interface{}, resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -81,7 +82,7 @@ func (ms MapStorage) Get(kind, id string) (resource interface{}, resp StorageRes
 	return
 }
 
-func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageResponse) {
+func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -103,7 +104,7 @@ func (ms MapStorage) GetAll(kind string) (resources []interface{}, resp StorageR
 	return
 }
 
-func (ms MapStorage) Update(kind, id string, resource interface{}) (resp StorageResponse) {
+func (ms MapStorage) Update(kind, id string, resource interface{}) (resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -133,7 +134,7 @@ func (ms MapStorage) Update(kind, id string, resource interface{}) (resp Storage
 	return
 }
 
-func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
+func (ms MapStorage) Delete(kind, id string) (resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]
@@ -163,7 +164,7 @@ func (ms MapStorage) Delete(kind, id string) (resp StorageResponse) {
 	return
 }
 
-func (ms MapStorage) DeleteAll(kind string) (resp StorageResponse) {
+func (ms MapStorage) DeleteAll(kind string) (resp crudapi.StorageResponse) {
 	// make sure kind exists
 	ms.RLock()
 	_, ok := ms.data[kind]

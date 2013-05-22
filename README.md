@@ -78,53 +78,7 @@ This package uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mu
 
 ## Example
 
-Put this code into a `main.go` file:
-
-	package main
-
-	import (
-		"github.com/gorilla/mux"
-		"github.com/sauerbraten/crudapi"
-		"log"
-		"net/http"
-	)
-
-	func hello(resp http.ResponseWriter, req *http.Request) {
-		resp.Write([]byte("Hello there!"))
-	}
-
-	func main() {
-		// storage
-		s := crudapi.NewMapStorage()
-		s.AddMap("artists")
-		s.AddMap("albums")
-
-		// guard
-		g := crudapi.MapGuard{map[string][]string{
-			"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
-			"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
-		}}
-
-		// router
-		r := mux.NewRouter()
-
-		// mounting the API
-		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s, g)
-
-		// custom handler
-		r.HandleFunc("/", hello)
-
-		// start listening
-		log.Println("server listening on localhost:8080")
-		log.Println("API on api.localhost:8080/v1/")
-
-		err := http.ListenAndServe(":8080", r)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-When the server is running, check out the [index page](http://localhost:8080/) and try the following commands in a terminal:
+Change into `example/` and execute `go run *.go`. When the server is running, check out the [index page](http://localhost:8080/) and try the following commands in a terminal:
 
 Create *Gorillaz* as *artist*:
 

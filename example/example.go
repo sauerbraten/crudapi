@@ -13,12 +13,12 @@ func hello(resp http.ResponseWriter, req *http.Request) {
 
 func main() {
 	// storage
-	s := crudapi.NewMapStorage()
+	s := NewMapStorage()
 	s.AddMap("artists")
 	s.AddMap("albums")
 
 	// guard
-	g := crudapi.MapGuard{map[string][]string{
+	g := MapGuard{map[string][]string{
 		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
 		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
 	}}
