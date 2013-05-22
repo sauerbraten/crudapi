@@ -4,6 +4,20 @@ An implementation of a minimalist RESTful JSON API offering Create, Read, Update
 
 For more information, check out the wikipedia aticles for [CRUD](http://en.wikipedia.org/wiki/Create,_read,_update_and_delete) and [RESTful](http://en.wikipedia.org/wiki/RESTful).
 
+- [Usage](#usage)
+	- [Storage Backend](#storage-backend)
+	- [Authentication & Authorization](#authentication--authorization)
+		- [Authentication vs. Authorization](#authentication-vs-authorization)
+	- [Routing](#routing)
+- [Example](#example)
+	- [Create](#create)
+	- [Read](#read)
+	- [Update](#update)
+	- [HTTP status codes](#http-status-codes)
+	- [Response Body](#response-body)
+- [Documentation](#documentation)
+- [License](#license)
+
 ## Usage
 
 Get the package:
