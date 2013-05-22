@@ -21,18 +21,18 @@ type apiResponse struct {
 }
 
 var s Storage
-var a AuthenticateFunction
+var g Guard
 
-// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. Requests are authenticated using the authentication function. If that function is nil, all requests are allowed by default.
-func MountAPI(router *mux.Router, storage Storage, authFunc AuthenticateFunction) {
+// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. If authenticator is nil, all requests are allowed by default.
+func MountAPI(router *mux.Router, storage Storage, guard Guard) {
 	s = storage
 	if s == nil {
 		panic("storage is nil")
 	}
 
-	a = authFunc
-	if a == nil {
-		a = allowAll
+	g = guard
+	if g == nil {
+		g = defaultGuard{}
 	}
 
 	// Create
@@ -57,8 +57,30 @@ func MountAPI(router *mux.Router, storage Storage, authFunc AuthenticateFunction
 func create(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
 	dec := json.NewDecoder(req.Body)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionCreate, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// read body and parse into interface{}
 	var resource map[string]interface{}
@@ -90,7 +112,29 @@ func create(resp http.ResponseWriter, req *http.Request) {
 func getAll(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionGetAll, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// look for resources
 	resources, stoResp := s.GetAll(kind)
@@ -107,7 +151,29 @@ func get(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionGet, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// look for resource
 	resource, stoResp := s.Get(kind, id)
@@ -124,8 +190,30 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
 	dec := json.NewDecoder(req.Body)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionUpdate, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// read body and parse into interface{}
 	var resource map[string]interface{}
@@ -134,7 +222,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 		resp.WriteHeader(http.StatusBadRequest)
-		err = enc.Encode(apiResponse{"malformed json", "", nil})
+		err := enc.Encode(apiResponse{"malformed json", "", nil})
 		if err != nil {
 			log.Println(err)
 		}
@@ -156,7 +244,29 @@ func update(resp http.ResponseWriter, req *http.Request) {
 func deleteAll(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionDeleteAll, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// look for resources
 	stoResp := s.DeleteAll(kind)
@@ -174,7 +284,29 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	kind := vars["kind"]
 	id := vars["id"]
+	params := req.URL.Query()
 	enc := json.NewEncoder(resp)
+
+	// authenticate request
+	guardResp := g.AuthenticateAndAuthorize(ActionDelete, kind, params)
+	if !guardResp.Authenticated {
+		resp.WriteHeader(http.StatusUnauthorized)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if !guardResp.Allowed {
+		resp.WriteHeader(http.StatusForbidden)
+		err := enc.Encode(apiResponse{guardResp.ErrorMessage, "", nil})
+		if err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
 
 	// delete resource
 	stoResp := s.Delete(kind, id)

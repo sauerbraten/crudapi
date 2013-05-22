@@ -25,7 +25,9 @@ Make sure your storage implementation is ready to handle the kinds of data you a
 	storage.AddMap("mytype")
 	storage.AddMap("myothertype")
 
-Make sure that these are URL-safe, since you will access them as an URL path.  
+Make sure that these are URL-safe, since you will access them as an URL path.
+
+You also need to specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to you API).
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
@@ -87,11 +89,17 @@ Put this code into a `main.go` file:
 		s.AddMap("artists")
 		s.AddMap("albums")
 
+		// authenticator
+		a := crudapi.MapAuthenticator{map[string][]string{
+			"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
+			"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
+		}}
+
 		// router
 		r := mux.NewRouter()
 
 		// mounting the API
-		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s)
+		crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s, a)
 
 		// custom handler
 		r.HandleFunc("/", hello)
