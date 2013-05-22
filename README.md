@@ -16,6 +16,8 @@ Import the package:
 		"github.com/sauerbraten/crudapi"
 	)
 
+### Storage Backend
+
 You need to specify where you want to store data. You have to implement [`crudapi.Storage`](http://godoc.org/github.com/sauerbraten/crudapi#Storage) for that purpose. There is an example implementation of that interface using maps, which we will use here:
 
 	storage := NewMapStorage()
@@ -27,6 +29,8 @@ Make sure your storage implementation is ready to handle the kinds of data you a
 
 Make sure that these are URL-safe, since you will access them as an URL path.
 
+### Authentication & Authorization
+
 You can also specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to you API). If you pass `nil` as guard, a default guard will be used with no restrictions of any kind. This meands everyone can do everything on your API!
 
 For example, you can use the example guard which uses a simple map to describe valid (= allowed) actions for each kind:
@@ -37,6 +41,8 @@ For example, you can use the example guard which uses a simple map to describe v
 	}}
 
 This code allows artist resources to be created, updated, and read one-by-one, and album resources to be created, updated, read one-by-one and read all at once. The example guard does not authenticate clients, though, meaning everybody can still perform those valid actions.
+
+### Routing
 
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
@@ -80,6 +86,8 @@ This package uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mu
 
 Change into `example/` and execute `go run *.go`. When the server is running, check out the [index page](http://localhost:8080/) and try the following commands in a terminal:
 
+### Create
+
 Create *Gorillaz* as *artist*:
 
 	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://api.localhost:8080/v1/artists
@@ -104,6 +112,8 @@ Output:
 
 	{"id":"1361703700"}
 
+### Read
+
 Retrieve the *Gorillaz* artist object:
 
 	curl -i -X GET http://api.localhost:8080/v1/artists/1361703578
@@ -114,6 +124,8 @@ Output:
 	[...]
 
 	{"result":{"name":"Gorillaz","albums":[]}}
+
+### Update
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
@@ -138,7 +150,9 @@ Output:
 	{"result":{"albums":["1361703700"],"name":"Gorillaz"}}
 
 
-Note the **returned HTTP codes**. Those status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
+### HTTP status codes
+
+Note the returned HTTP codes. Those status codes are set by your `Storage` implementation; `MapStorage` for example uses the folllowing:
 
 - `201 Created` when creating,
 - `200 OK` when getting, updating and deleting.
@@ -151,6 +165,8 @@ There are a few status codes that are not set by your `Storage`, but the API han
 - `403 Forbidden` is used when authentication was successful, but the client is not authorized to perform the specified action on the specified resource(s).
 
 The `401 Unauthorized` status code is slightly misleading, and should actually mean `401 Unauthenticated`, since it asks for authentication, and not authorization.
+
+### Response Body
 
 Server responses are always a JSON object, containing zero or more of the following fields:
 
