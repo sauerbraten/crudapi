@@ -15,16 +15,25 @@ import (
 )
 
 type apiResponse struct {
-	Error  string      `json:"error,omitempty"`
-	Id     string      `json:"id,omitempty"`
-	Result interface{} `json:"result,omitempty"`
+	ErrorMessage string      `json:"error,omitempty"`
+	Id           string      `json:"id,omitempty"`
+	Result       interface{} `json:"result,omitempty"`
 }
 
 var s Storage
+var a AuthenticateFunction
 
-// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage.
-func MountAPI(router *mux.Router, storage Storage) {
+// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. Requests are authenticated using the authentication function. If that function is nil, all requests are allowed by default.
+func MountAPI(router *mux.Router, storage Storage, authFunc AuthenticateFunction) {
 	s = storage
+	if s == nil {
+		panic("storage is nil")
+	}
+
+	a = authFunc
+	if a == nil {
+		a = allowAll
+	}
 
 	// Create
 	router.HandleFunc("/{kind}", create).Methods("POST")
@@ -72,7 +81,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.Err, id, nil})
+	err = enc.Encode(apiResponse{stoResp.ErrorMessage, id, nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -88,7 +97,7 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err, "", resources})
+	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -105,7 +114,7 @@ func get(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err, "", resource})
+	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", resource})
 	if err != nil {
 		log.Println(err)
 	}
@@ -138,7 +147,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.Err, "", nil})
+	err = enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -154,7 +163,7 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
+	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -172,7 +181,7 @@ func del(resp http.ResponseWriter, req *http.Request) {
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.Err, "", nil})
+	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
 	if err != nil {
 		log.Println(err)
 	}
