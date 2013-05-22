@@ -69,7 +69,7 @@ Authorization means to check if the client is allowed to perform a specific acti
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
-	crudapi.MountAPI(router, storage)
+	crudapi.MountAPI(router, storage, guard)
 
 You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
