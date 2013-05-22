@@ -18,7 +18,7 @@ Import the package:
 
 You need to specify where you want to store data. You have to implement [`crudapi.Storage`](http://godoc.org/github.com/sauerbraten/crudapi#Storage) for that purpose. There is an example implementation of that interface using maps, which we will use here:
 
-	storage := crudapi.NewMapStorage()
+	storage := NewMapStorage()
 
 Make sure your storage implementation is ready to handle the kinds of data you are going to use. For example, create the tables you'll need in you database. With MapStorage you create new maps like this:
 
@@ -31,7 +31,7 @@ You can also specify who is allowed to do what with your resources. For this, th
 
 For example, you can use the example guard which uses a simple map to describe valid (= allowed) actions for each kind:
 
-	g := crudapi.MapGuard{map[string][]string{
+	g := MapGuard{map[string][]string{
 		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
 		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
 	}}
