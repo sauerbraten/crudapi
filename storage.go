@@ -12,7 +12,7 @@ type Storage interface {
 	// first argument is always the kind of resource (for example the database table to use)
 	// a second string argument is the resource ID
 	// a interface{} is a resource (for example a JSON object or a database row with map indexes ~ column names)
-
+	//
 	// creates a resource and stores the data in it, then returns the ID
 	Create(string, interface{}) (string, StorageResponse)
 
