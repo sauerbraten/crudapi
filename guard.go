@@ -4,6 +4,7 @@ import (
 	"net/url"
 )
 
+// A CRUD action. See constants for predefined actions.
 type Action int
 
 const (
