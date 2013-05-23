@@ -15,7 +15,8 @@ func (mg MapGuard) Authenticate(params url.Values) (ok bool, client string, erro
 	return
 }
 
-func (mg MapGuard) Authorize(client string, action crudapi.Action, kind string) (ok bool, errorMessage string) {
+func (mg MapGuard) Authorize(client string, action crudapi.Action, vars UrlVars) (ok bool, errorMessage string) {
+	kind := vars["kind"]
 	for _, validAction := range mg.ValidActions[kind] {
 		if validAction == action {
 			ok = true
