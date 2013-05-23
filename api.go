@@ -58,17 +58,16 @@ func MountAPI(router *mux.Router, storage Storage, guard Guard) {
 // initializes variables needed to handle every request and authenticates and authorizes the request
 func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (authenticatedAndAuthorized bool, kind string, enc *json.Encoder) {
 	vars := mux.Vars(req)
-	kind = vars["kind"]
 	params := req.URL.Query()
 	enc = json.NewEncoder(resp)
 
-	authenticatedAndAuthorized = authenticateAndAuthorize(action, vars["kind"], params, resp, enc)
+	authenticatedAndAuthorized = authenticateAndAuthorize(action, vars, params, resp, enc)
 
 	return
 }
 
 // authenticate request and authorize action
-func authenticateAndAuthorize(action Action, kind string, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
+func authenticateAndAuthorize(action Action, vars UrlVars, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
 	authenticated, client, errorMessage := g.Authenticate(params)
 	if !authenticated {
 		log.Println("unauthenticated request:\n\tURL parameters:", params, "\n\terror message:", errorMessage)
@@ -82,9 +81,11 @@ func authenticateAndAuthorize(action Action, kind string, params url.Values, res
 		return
 	}
 
-	authorized, errorMessage := g.Authorize(client, action, kind)
+	kind := vars["kind"]
+	id := vars["id"]
+	authorized, errorMessage := g.Authorize(client, action, vars)
 	if !authorized {
-		log.Println("unauthorized request:\n\tclient:", client, "\n\taction:", action, "kind:", kind, "\n\terror message", errorMessage)
+		log.Println("unauthorized request:\n\tclient:", client, "\n\taction:", action, "kind:", kind, "id:", id, "\n\terror message", errorMessage)
 
 		resp.WriteHeader(http.StatusForbidden)
 		err := enc.Encode(apiResponse{errorMessage, "", nil})
