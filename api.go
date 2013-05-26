@@ -67,7 +67,7 @@ func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (a
 }
 
 // authenticate request and authorize action
-func authenticateAndAuthorize(action Action, vars UrlVars, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
+func authenticateAndAuthorize(action Action, urlVars map[string]string, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
 	authenticated, client, errorMessage := g.Authenticate(params)
 	if !authenticated {
 		log.Println("unauthenticated request:\n\tURL parameters:", params, "\n\terror message:", errorMessage)
@@ -81,9 +81,9 @@ func authenticateAndAuthorize(action Action, vars UrlVars, params url.Values, re
 		return
 	}
 
-	kind := vars["kind"]
-	id := vars["id"]
-	authorized, errorMessage := g.Authorize(client, action, vars)
+	kind := urlVars["kind"]
+	id := urlVars["id"]
+	authorized, errorMessage := g.Authorize(client, action, urlVars)
 	if !authorized {
 		log.Println("unauthorized request:\n\tclient:", client, "\n\taction:", action, "kind:", kind, "id:", id, "\n\terror message", errorMessage)
 

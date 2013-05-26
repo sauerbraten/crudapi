@@ -7,8 +7,6 @@ import (
 // A CRUD action. See constants for predefined actions.
 type Action string
 
-type UrlVars map[string]string
-
 const (
 	ActionCreate    Action = "create"
 	ActionGet       Action = "get"
@@ -24,7 +22,7 @@ type Guard interface {
 	Authenticate(params url.Values) (ok bool, client string, errorMessage string)
 
 	// Tries to authorize the action (one of the Action* constants) to be performed on the kind of resource by the client. Returns wether the action is authorized, and if not, an error message to be sent back to the client.
-	Authorize(client string, action Action, vars UrlVars) (ok bool, errorMessage string)
+	Authorize(client string, action Action, urlVars map[string]string) (ok bool, errorMessage string)
 }
 
 // default guard; allows everyone to do everything
@@ -35,7 +33,7 @@ func (d defaultGuard) Authenticate(params url.Values) (ok bool, client string, e
 	return
 }
 
-func (d defaultGuard) Authorize(client string, action Action, vars UrlVars) (ok bool, errorMessage string) {
+func (d defaultGuard) Authorize(client string, action Action, urlVars map[string]string) (ok bool, errorMessage string) {
 	ok = true
 	return
 }
