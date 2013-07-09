@@ -56,8 +56,8 @@ func MountAPI(router *mux.Router, storage Storage, guard Guard) {
 }
 
 // initializes variables needed to handle every request and authenticates and authorizes the request
-func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (authenticatedAndAuthorized bool, kind string, enc *json.Encoder) {
-	vars := mux.Vars(req)
+func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (authenticatedAndAuthorized bool, vars map[string]string, enc *json.Encoder) {
+	vars = mux.Vars(req)
 	params := req.URL.Query()
 	enc = json.NewEncoder(resp)
 
@@ -101,7 +101,7 @@ func authenticateAndAuthorize(action Action, urlVars map[string]string, params u
 }
 
 func create(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionCreate)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionCreate)
 	if !authenticatedAndAuthorized {
 		return
 	}
@@ -124,7 +124,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// set in storage
-	id, stoResp := s.Create(kind, resource)
+	id, stoResp := s.Create(vars["kind"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -135,13 +135,13 @@ func create(resp http.ResponseWriter, req *http.Request) {
 }
 
 func getAll(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionGetAll)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionGetAll)
 	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// look for resources
-	resources, stoResp := s.GetAll(kind)
+	resources, stoResp := s.GetAll(vars["kind"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -152,14 +152,13 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 }
 
 func get(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionGet)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionGet)
 	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// look for resource
-	id := mux.Vars(req)["id"]
-	resource, stoResp := s.Get(kind, id)
+	resource, stoResp := s.Get(vars["kind"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -170,7 +169,7 @@ func get(resp http.ResponseWriter, req *http.Request) {
 }
 
 func update(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionUpdate)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionUpdate)
 	if !authenticatedAndAuthorized {
 		return
 	}
@@ -192,8 +191,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// update resource
-	id := mux.Vars(req)["id"]
-	stoResp := s.Update(kind, id, resource)
+	stoResp := s.Update(vars["kind"], vars["id"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -204,13 +202,13 @@ func update(resp http.ResponseWriter, req *http.Request) {
 }
 
 func deleteAll(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionDeleteAll)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionDeleteAll)
 	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// look for resources
-	stoResp := s.DeleteAll(kind)
+	stoResp := s.DeleteAll(vars["kind"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -222,14 +220,13 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 
 // delete() is a built-in function, thus del() is used here
 func del(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, kind, enc := initHandling(req, resp, ActionDelete)
+	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionDelete)
 	if !authenticatedAndAuthorized {
 		return
 	}
 
 	// delete resource
-	id := mux.Vars(req)["id"]
-	stoResp := s.Delete(kind, id)
+	stoResp := s.Delete(vars["kind"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
