@@ -112,7 +112,7 @@ Change into `example/` and execute `go run *.go`. When the server is running, ch
 
 Create *Gorillaz* as *artist*:
 
-	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://api.localhost:8080/v1/artists
+	curl -i -X POST -d '{"name":"Gorillaz","albums":[]}' http://localhost:8080/artists
 
 Output:
 
@@ -125,7 +125,7 @@ The ID in the reply is created by your storage implementation, typically a wrapp
 
 Create *Plastic Beach* as *album*:
 
-	curl -i -X POST -d '{"title":"Plastic Beach","songs":["On Melancholy Hill","Stylo"]}' http://api.localhost:8080/v1/albums
+	curl -i -X POST -d '{"title":"Plastic Beach","songs":["On Melancholy Hill","Stylo"]}' http://localhost:8080/albums
 
 Output:
 
@@ -138,7 +138,7 @@ Output:
 
 Retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://api.localhost:8080/v1/artists/1361703578
+	curl -i -X GET http://localhost:8080/artists/1361703578
 
 Output:
 
@@ -151,7 +151,7 @@ Output:
 
 Update the *Gorillaz* object and add the *Plastic Beach* album:
 
-	curl -i -X PUT -d '{"name":"Gorillaz","albums":["1361703700"]}' http://api.localhost:8080/v1/artists/1361703578
+	curl -i -X PUT -d '{"name":"Gorillaz","albums":["1361703700"]}' http://localhost:8080/artists/1361703578
 
 Output:
 
@@ -162,7 +162,7 @@ Output:
 
 Again, retrieve the *Gorillaz* artist object:
 
-	curl -i -X GET http://api.localhost:8080/v1/artists/1361703578
+	curl -i -X GET http://localhost:8080/artists/1361703578
 
 Output:
 
