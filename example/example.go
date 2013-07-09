@@ -27,7 +27,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// mounting the API
-	crudapi.MountAPI(r.Host("api.localhost").PathPrefix("/v1").Subrouter(), s, g)
+	crudapi.MountAPI(r.Host("localhost").Subrouter(), s, g)
 
 	// custom handler
 	r.HandleFunc("/", hello)
