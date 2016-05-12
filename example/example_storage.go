@@ -1,12 +1,18 @@
 package main
 
 import (
-	"github.com/sauerbraten/crudapi"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/sauerbraten/crudapi"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // MapStorage is a basic storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
 // MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
@@ -46,7 +52,7 @@ func (ms MapStorage) Create(kind string, resource interface{}) (id string, resp 
 	}
 
 	// make (pesudo-random) ID
-	id = strconv.FormatInt(time.Now().Unix(), 10)
+	id = strconv.FormatInt(rand.Int63(), 10)
 
 	// create nil entry for the new ID
 	ms.Lock()
