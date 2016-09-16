@@ -37,7 +37,7 @@ func MountAPI(router *mux.Router, storage Storage, auth func(http.HandlerFunc) h
 		"GET":     getAll,
 		"POST":    create,
 		"DELETE":  deleteAll,
-		"OPTIONS": optionsKind,
+		"OPTIONS": optionsCollection,
 	}
 
 	resourceHandlers := map[string]apiHandlerFunc{
@@ -47,8 +47,8 @@ func MountAPI(router *mux.Router, storage Storage, auth func(http.HandlerFunc) h
 		"OPTIONS": optionsResource,
 	}
 
-	router.HandleFunc("/{kind}", auth(chooseAndInitialize(collectionHandlers, storage)))
-	router.HandleFunc("/{kind}/{id}", auth(chooseAndInitialize(resourceHandlers, storage)))
+	router.HandleFunc("/{collection}", auth(chooseAndInitialize(collectionHandlers, storage)))
+	router.HandleFunc("/{collection}/{id}", auth(chooseAndInitialize(resourceHandlers, storage)))
 }
 
 func chooseAndInitialize(handlersByMethod map[string]apiHandlerFunc, storage Storage) http.HandlerFunc {
@@ -84,7 +84,7 @@ func create(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 	}
 
 	// set in storage
-	id, stoResp := storage.Create(vars["kind"], resource)
+	id, stoResp := storage.Create(vars["collection"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -96,7 +96,7 @@ func create(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 
 func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resources
-	resources, stoResp := storage.GetAll(vars["kind"])
+	resources, stoResp := storage.GetAll(vars["collection"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -108,7 +108,7 @@ func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 
 func get(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resource
-	resource, stoResp := storage.Get(vars["kind"], vars["id"])
+	resource, stoResp := storage.Get(vars["collection"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -134,7 +134,7 @@ func update(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 	}
 
 	// update resource
-	stoResp := storage.Update(vars["kind"], vars["id"], resource)
+	stoResp := storage.Update(vars["collection"], vars["id"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -146,7 +146,7 @@ func update(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 
 func deleteAll(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resources
-	stoResp := storage.DeleteAll(vars["kind"])
+	stoResp := storage.DeleteAll(vars["collection"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -159,7 +159,7 @@ func deleteAll(storage Storage, resp http.ResponseWriter, vars map[string]string
 // delete() is a built-in function, thus del() is used here
 func del(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// delete resource
-	stoResp := storage.Delete(vars["kind"], vars["id"])
+	stoResp := storage.Delete(vars["collection"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -169,7 +169,7 @@ func del(storage Storage, resp http.ResponseWriter, vars map[string]string, enc 
 	}
 }
 
-func optionsKind(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
+func optionsCollection(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	h := resp.Header()
 
 	h.Add("Allow", "PUT")
