@@ -9,105 +9,65 @@ package crudapi
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"net/url"
+
+	"github.com/gorilla/mux"
 )
 
 type apiResponse struct {
 	ErrorMessage string      `json:"error,omitempty"`
-	Id           string      `json:"id,omitempty"`
+	ID           string      `json:"id,omitempty"`
 	Result       interface{} `json:"result,omitempty"`
 }
 
-var s Storage
-var g Guard
+type apiHandlerFunc func(Storage, http.ResponseWriter, map[string]string, *json.Encoder, *json.Decoder)
 
-// Adds CRUD and OPTIONS routes to the router, which rely on the given Storage. If guard is nil, all requests are allowed by default.
-func MountAPI(router *mux.Router, storage Storage, guard Guard) {
-	s = storage
-	if s == nil {
+// MountAPI adds CRUD and OPTIONS routes to the router, which rely on the given Storage. You can provide a middleware function auth that authenticates and authorizes requests.
+func MountAPI(router *mux.Router, storage Storage, auth func(http.HandlerFunc) http.HandlerFunc) {
+	if storage == nil {
 		panic("storage is nil")
 	}
 
-	g = guard
-	if g == nil {
-		g = defaultGuard{}
+	if auth == nil {
+		auth = func(f http.HandlerFunc) http.HandlerFunc { return f }
 	}
 
-	// Create
-	router.HandleFunc("/{kind}", create).Methods("POST")
+	collectionHandlers := map[string]apiHandlerFunc{
+		"GET":     getAll,
+		"POST":    create,
+		"DELETE":  deleteAll,
+		"OPTIONS": optionsKind,
+	}
 
-	// Read
-	router.HandleFunc("/{kind}", getAll).Methods("GET")
-	router.HandleFunc("/{kind}/{id}", get).Methods("GET")
+	resourceHandlers := map[string]apiHandlerFunc{
+		"GET":     get,
+		"PUT":     update,
+		"DELETE":  del,
+		"OPTIONS": optionsResource,
+	}
 
-	// Update
-	router.HandleFunc("/{kind}/{id}", update).Methods("PUT")
-
-	// Delete
-	router.HandleFunc("/{kind}", deleteAll).Methods("DELETE")
-	router.HandleFunc("/{kind}/{id}", del).Methods("DELETE")
-
-	// OPTIONS routes for API discovery
-	router.HandleFunc("/{kind}", optionsKind).Methods("OPTIONS")
-	router.HandleFunc("/{kind}/{id}", optionsResource).Methods("OPTIONS")
+	router.HandleFunc("/{kind}", auth(chooseAndInitialize(collectionHandlers, storage)))
+	router.HandleFunc("/{kind}/{id}", auth(chooseAndInitialize(resourceHandlers, storage)))
 }
 
-// initializes variables needed to handle every request and authenticates and authorizes the request
-func initHandling(req *http.Request, resp http.ResponseWriter, action Action) (authenticatedAndAuthorized bool, vars map[string]string, enc *json.Encoder) {
-	vars = mux.Vars(req)
-	params := req.URL.Query()
-	enc = json.NewEncoder(resp)
-
-	authenticatedAndAuthorized = authenticateAndAuthorize(action, vars, params, resp, enc)
-
-	return
-}
-
-// authenticate request and authorize action
-func authenticateAndAuthorize(action Action, urlVars map[string]string, params url.Values, resp http.ResponseWriter, enc *json.Encoder) (ok bool) {
-	authenticated, client, errorMessage := g.Authenticate(params)
-	if !authenticated {
-		log.Println("unauthenticated request:\n\tURL parameters:", params, "\n\terror message:", errorMessage)
-
-		resp.WriteHeader(http.StatusUnauthorized)
-		err := enc.Encode(apiResponse{errorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
+func chooseAndInitialize(handlersByMethod map[string]apiHandlerFunc, storage Storage) http.HandlerFunc {
+	return func(resp http.ResponseWriter, req *http.Request) {
+		handler, ok := handlersByMethod[req.Method]
+		if !ok {
+			resp.WriteHeader(http.StatusMethodNotAllowed)
+			return
 		}
 
-		return
+		vars := mux.Vars(req)
+		enc := json.NewEncoder(resp)
+		dec := json.NewDecoder(req.Body)
+
+		handler(storage, resp, vars, enc, dec)
 	}
-
-	kind := urlVars["kind"]
-	id := urlVars["id"]
-	authorized, errorMessage := g.Authorize(client, action, urlVars)
-	if !authorized {
-		log.Println("unauthorized request:\n\tclient:", client, "\n\taction:", action, "kind:", kind, "id:", id, "\n\terror message", errorMessage)
-
-		resp.WriteHeader(http.StatusForbidden)
-		err := enc.Encode(apiResponse{errorMessage, "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-
-	ok = true
-	return
 }
 
-func create(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionCreate)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
-	// read body and parse into interface{}
-	dec := json.NewDecoder(req.Body)
+func create(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	var resource map[string]interface{}
 	err := dec.Decode(&resource)
 
@@ -124,7 +84,7 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// set in storage
-	id, stoResp := s.Create(vars["kind"], resource)
+	id, stoResp := storage.Create(vars["kind"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -134,14 +94,9 @@ func create(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getAll(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionGetAll)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
+func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resources
-	resources, stoResp := s.GetAll(vars["kind"])
+	resources, stoResp := storage.GetAll(vars["kind"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -151,14 +106,9 @@ func getAll(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func get(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionGet)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
+func get(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resource
-	resource, stoResp := s.Get(vars["kind"], vars["id"])
+	resource, stoResp := storage.Get(vars["kind"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -168,14 +118,7 @@ func get(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func update(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionUpdate)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
-	// read body and parse into interface{}
-	dec := json.NewDecoder(req.Body)
+func update(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	var resource map[string]interface{}
 	err := dec.Decode(&resource)
 
@@ -191,7 +134,7 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// update resource
-	stoResp := s.Update(vars["kind"], vars["id"], resource)
+	stoResp := storage.Update(vars["kind"], vars["id"], resource)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -201,14 +144,9 @@ func update(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func deleteAll(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionDeleteAll)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
+func deleteAll(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resources
-	stoResp := s.DeleteAll(vars["kind"])
+	stoResp := storage.DeleteAll(vars["kind"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -219,14 +157,9 @@ func deleteAll(resp http.ResponseWriter, req *http.Request) {
 }
 
 // delete() is a built-in function, thus del() is used here
-func del(resp http.ResponseWriter, req *http.Request) {
-	authenticatedAndAuthorized, vars, enc := initHandling(req, resp, ActionDelete)
-	if !authenticatedAndAuthorized {
-		return
-	}
-
+func del(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// delete resource
-	stoResp := s.Delete(vars["kind"], vars["id"])
+	stoResp := storage.Delete(vars["kind"], vars["id"])
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode)
@@ -236,7 +169,7 @@ func del(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func optionsKind(resp http.ResponseWriter, req *http.Request) {
+func optionsKind(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	h := resp.Header()
 
 	h.Add("Allow", "PUT")
@@ -247,7 +180,7 @@ func optionsKind(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 }
 
-func optionsResource(resp http.ResponseWriter, req *http.Request) {
+func optionsResource(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	h := resp.Header()
 
 	h.Add("Allow", "POST")

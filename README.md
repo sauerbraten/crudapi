@@ -7,7 +7,6 @@ For more information, check out the wikipedia aticles for [CRUD](http://en.wikip
 - [Usage](#usage)
 	- [Storage Backend](#storage-backend)
 	- [Authentication & Authorization](#authentication--authorization)
-		- [Authentication vs. Authorization](#authentication-vs-authorization)
 	- [Routing](#routing)
 - [Example](#example)
 	- [Create](#create)
@@ -45,35 +44,34 @@ Make sure that these are URL-safe, since you will access them as an URL path.
 
 ### Authentication & Authorization
 
-You can also specify who is allowed to do what with your resources. For this, there is the [`crudapi.Guard`](http://godoc.org/github.com/sauerbraten/crudapi#Guard) interface. Implementations of this interface authenticate clients, for example using API keys, and authorize their requests (you may want to offer read-only access to your API). If you use `nil` as guard, a default guard will be used with no restrictions of any kind.
+You can control access to resources and collections by providing a middleware function (`func(http.HandlerFunc) http.HandlerFunc`). For example:
 
-Again, there is an example guard implemenatation which uses a simple map to describe valid (= allowed) actions for each kind:
+	func auth(handler http.HandlerFunc) http.HandlerFunc {
+		return func(resp http.ResponseWriter, req *http.Request) {
+			token := req.Header.Get("Token")
+			if token == "" {
+				resp.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			if (token != superSecretAccessToken) {
+				resp.WriteHeader(http.StatusForbidden)
+				return
+			}
 
-	guard := MapGuard{map[string][]string{
-		"artists": {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionUpdate},
-		"albums":  {crudapi.ActionCreate, crudapi.ActionGet, crudapi.ActionGetAll, crudapi.ActionUpdate},
-	}}
-
-This code allows artist resources to be created, updated, and read one-by-one, and album resources to be created, updated, read one-by-one and read all at once. The example guard does not authenticate clients, though, meaning everybody can still perform those valid actions.
-
-#### Authentication vs. Authorization
-
-To clarify what is meant with these two words in the context of this package:
-
-Authentication simply means identifying the client that sent the request and allowing or disallowing access on the sole basis of *who*.
-
-Authorization means to check if the client is allowed to perform a specific action on a specific (set of) resource(s). In other words, it means allowing or disallowing access on the basis of *who* wants do to *what* (what being "performing an *action* to a *target*").
+			handler(resp, req)
+		}
+	}
 
 ### Routing
 
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
-	crudapi.MountAPI(router, storage, guard)
+	crudapi.MountAPI(router, storage, auth)
 
 You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
-	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage, guard)
+	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage, auth)
 
 This will create the following CRUD routes:
 
