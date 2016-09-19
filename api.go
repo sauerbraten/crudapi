@@ -87,8 +87,8 @@ func create(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 	id, stoResp := storage.Create(vars["collection"], resource)
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.ErrorMessage, id, nil})
+	resp.WriteHeader(stoResp.StatusCode())
+	err = enc.Encode(apiResponse{stoResp.Error(), id, nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -99,8 +99,8 @@ func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 	resources, stoResp := storage.GetAll(vars["collection"])
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", resources})
+	resp.WriteHeader(stoResp.StatusCode())
+	err := enc.Encode(apiResponse{stoResp.Error(), "", resources})
 	if err != nil {
 		log.Println(err)
 	}
@@ -111,8 +111,8 @@ func get(storage Storage, resp http.ResponseWriter, vars map[string]string, enc 
 	resource, stoResp := storage.Get(vars["collection"], vars["id"])
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", resource})
+	resp.WriteHeader(stoResp.StatusCode())
+	err := enc.Encode(apiResponse{stoResp.Error(), "", resource})
 	if err != nil {
 		log.Println(err)
 	}
@@ -137,8 +137,8 @@ func update(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 	stoResp := storage.Update(vars["collection"], vars["id"], resource)
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err = enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
+	resp.WriteHeader(stoResp.StatusCode())
+	err = enc.Encode(apiResponse{stoResp.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -149,8 +149,8 @@ func deleteAll(storage Storage, resp http.ResponseWriter, vars map[string]string
 	stoResp := storage.DeleteAll(vars["collection"])
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
+	resp.WriteHeader(stoResp.StatusCode())
+	err := enc.Encode(apiResponse{stoResp.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -162,8 +162,8 @@ func del(storage Storage, resp http.ResponseWriter, vars map[string]string, enc 
 	stoResp := storage.Delete(vars["collection"], vars["id"])
 
 	// write response
-	resp.WriteHeader(stoResp.StatusCode)
-	err := enc.Encode(apiResponse{stoResp.ErrorMessage, "", nil})
+	resp.WriteHeader(stoResp.StatusCode())
+	err := enc.Encode(apiResponse{stoResp.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}
