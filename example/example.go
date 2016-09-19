@@ -12,10 +12,6 @@ func hello(resp http.ResponseWriter, req *http.Request) {
 	resp.Write([]byte("Hello there!"))
 }
 
-func fakeAuth(handler http.HandlerFunc) http.HandlerFunc {
-	return handler
-}
-
 func main() {
 	// storage
 	storage := NewMapStorage()
@@ -26,14 +22,14 @@ func main() {
 	r := mux.NewRouter()
 
 	// mounting the API
-	crudapi.MountAPI(r.Host("localhost").Subrouter(), storage, fakeAuth)
+	crudapi.MountAPI(r.Host("localhost").Subrouter(), storage, nil)
 
 	// custom handler
 	r.HandleFunc("/", hello)
 
 	// start listening
 	log.Println("server listening on localhost:8080")
-	log.Println("API on api.localhost:8080/")
+	log.Println("API on localhost:8080/")
 
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {
