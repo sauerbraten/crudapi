@@ -23,8 +23,8 @@ type apiResponse struct {
 
 type apiHandlerFunc func(Storage, http.ResponseWriter, map[string]string, *json.Encoder, *json.Decoder)
 
-// MountAPI adds CRUD and OPTIONS routes to the router, which rely on the given Storage. You can provide a middleware function auth that authenticates and authorizes requests.
-func MountAPI(router *mux.Router, storage Storage, auth func(http.HandlerFunc) http.HandlerFunc) {
+// Mount adds CRUD and OPTIONS routes to the router, which rely on the given Storage. You can provide a middleware function auth that authenticates and authorizes requests.
+func Mount(router *mux.Router, storage Storage, auth func(http.HandlerFunc) http.HandlerFunc) {
 	if storage == nil {
 		panic("storage is nil")
 	}
