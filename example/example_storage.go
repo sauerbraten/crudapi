@@ -32,11 +32,11 @@ func (mssr *mapStorageStatusResponse) StatusCode() int {
 }
 
 var (
-	CollectionNotFound = &mapStorageStatusResponse{
+	collectionNotFound = &mapStorageStatusResponse{
 		error:      errors.New("collection not found"),
 		statusCode: http.StatusNotFound,
 	}
-	ResourceNotFound = &mapStorageStatusResponse{
+	resourceNotFound = &mapStorageStatusResponse{
 		error:      errors.New("resource not found"),
 		statusCode: http.StatusNotFound,
 	}
@@ -91,7 +91,7 @@ func (ms *MapStorage) resourceExists(collection, id string) (interface{}, bool) 
 func (ms *MapStorage) Create(collection string, resource interface{}) (string, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
-		return "", CollectionNotFound
+		return "", collectionNotFound
 	}
 
 	// make (pesudo-random) ID
@@ -109,7 +109,7 @@ func (ms *MapStorage) Get(collection, id string) (interface{}, crudapi.StorageSt
 	// make sure resource exists
 	resource, ok := ms.resourceExists(collection, id)
 	if !ok {
-		return nil, ResourceNotFound
+		return nil, resourceNotFound
 	}
 
 	return resource, newMSSR(http.StatusOK, "")
@@ -118,7 +118,7 @@ func (ms *MapStorage) Get(collection, id string) (interface{}, crudapi.StorageSt
 func (ms *MapStorage) GetAll(collection string) ([]interface{}, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
-		return nil, CollectionNotFound
+		return nil, collectionNotFound
 	}
 
 	// collect all values in the collection's map in a slice
@@ -135,7 +135,7 @@ func (ms *MapStorage) GetAll(collection string) ([]interface{}, crudapi.StorageS
 func (ms *MapStorage) Update(collection, id string, resource interface{}) crudapi.StorageStatusResponse {
 	// make sure resource exists
 	if _, ok := ms.resourceExists(collection, id); !ok {
-		return ResourceNotFound
+		return resourceNotFound
 	}
 
 	// update resource
@@ -149,7 +149,7 @@ func (ms *MapStorage) Update(collection, id string, resource interface{}) crudap
 func (ms *MapStorage) Delete(collection, id string) crudapi.StorageStatusResponse {
 	// make sure resource exists
 	if _, ok := ms.resourceExists(collection, id); !ok {
-		return ResourceNotFound
+		return resourceNotFound
 	}
 
 	// delete resource
@@ -163,7 +163,7 @@ func (ms *MapStorage) Delete(collection, id string) crudapi.StorageStatusRespons
 func (ms *MapStorage) DeleteAll(collection string) crudapi.StorageStatusResponse {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
-		return CollectionNotFound
+		return collectionNotFound
 	}
 
 	// delete resources
