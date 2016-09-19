@@ -67,11 +67,11 @@ You can control access to resources and collections by providing a middleware fu
 Next, create a `*mux.Router` (from [gorilla/mux](http://www.gorillatoolkit.org/pkg/mux)) and mount the API:
 
 	router := mux.NewRouter()
-	crudapi.MountAPI(router, storage, auth)
+	crudapi.Mount(router, storage, auth)
 
 You could also use a subrouter for the API to limit it to a subdomain, and use version numbers as path prefixes:
 
-	crudapi.MountAPI(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage, auth)
+	crudapi.Mount(router.Host("api.domain.com").PathPrefix("/v1").Subrouter(), storage, auth)
 
 This will create the following CRUD routes:
 
