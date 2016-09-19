@@ -31,6 +31,17 @@ func (mssr *mapStorageStatusResponse) StatusCode() int {
 	return mssr.statusCode
 }
 
+var (
+	CollectionNotFound = &mapStorageStatusResponse{
+		error:      errors.New("collection not found"),
+		statusCode: http.StatusNotFound,
+	}
+	ResourceNotFound = &mapStorageStatusResponse{
+		error:      errors.New("resource not found"),
+		statusCode: http.StatusNotFound,
+	}
+)
+
 // MapStorage is a basic storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
 // MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
 type MapStorage struct {
@@ -57,86 +68,74 @@ func (ms *MapStorage) DeleteMap(collection string) {
 	ms.Unlock()
 }
 
-func (ms *MapStorage) ensureCollectionExists(collection string, resp crudapi.StorageStatusResponse) bool {
+func (ms *MapStorage) collectionExists(collection string) bool {
 	ms.RLock()
 	_, ok := ms.data[collection]
 	ms.RUnlock()
 
-	if ok {
-		return true
-	}
-
-	resp = newMSSR(http.StatusNotFound, "collection not found")
-	return false
+	return ok
 }
 
-func (ms *MapStorage) ensureResourceExists(collection, id string, resp crudapi.StorageStatusResponse) (resource interface{}, ok bool) {
-	if ok = ms.ensureCollectionExists(collection, resp); !ok {
-		return
+func (ms *MapStorage) resourceExists(collection, id string) (interface{}, bool) {
+	if !ms.collectionExists(collection) {
+		return nil, false
 	}
 
 	ms.RLock()
-	resource, ok = ms.data[collection][id]
+	resource, ok := ms.data[collection][id]
 	ms.RUnlock()
 
-	if !ok {
-		resp = newMSSR(http.StatusNotFound, "resource not found")
-	}
-
-	return
+	return resource, ok
 }
 
-func (ms *MapStorage) Create(collection string, resource interface{}) (id string, resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Create(collection string, resource interface{}) (string, crudapi.StorageStatusResponse) {
 	// make sure collection exists
-	if ok := ms.ensureCollectionExists(collection, resp); !ok {
-		return
+	if !ms.collectionExists(collection) {
+		return "", CollectionNotFound
 	}
 
 	// make (pesudo-random) ID
-	id = strconv.FormatInt(rand.Int63(), 10)
+	id := strconv.FormatInt(rand.Int63(), 10)
 
-	// create nil entry for the new ID
+	// insert resource
 	ms.Lock()
 	ms.data[collection][id] = resource
 	ms.Unlock()
 
-	resp = newMSSR(http.StatusCreated, "")
-	return
+	return id, newMSSR(http.StatusCreated, "")
 }
 
-func (ms *MapStorage) Get(collection, id string) (resource interface{}, resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Get(collection, id string) (interface{}, crudapi.StorageStatusResponse) {
 	// make sure resource exists
-	var ok bool
-	resource, ok = ms.ensureResourceExists(collection, id, resp)
+	resource, ok := ms.resourceExists(collection, id)
 	if !ok {
-		return
+		return nil, ResourceNotFound
 	}
 
-	resp = newMSSR(http.StatusOK, "")
-	return
+	return resource, newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) GetAll(collection string) (resources []interface{}, resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) GetAll(collection string) ([]interface{}, crudapi.StorageStatusResponse) {
 	// make sure collection exists
-	if ok := ms.ensureCollectionExists(collection, resp); !ok {
-		return
+	if !ms.collectionExists(collection) {
+		return nil, CollectionNotFound
 	}
 
 	// collect all values in the collection's map in a slice
+	var resources []interface{}
 	ms.RLock()
 	for _, resource := range ms.data[collection] {
 		resources = append(resources, resource)
 	}
 	ms.RUnlock()
 
-	resp = newMSSR(http.StatusOK, "")
-	return
+	return resources, newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) Update(collection, id string, resource interface{}) (resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Update(collection, id string, resource interface{}) crudapi.StorageStatusResponse {
 	// make sure resource exists
-	if _, ok := ms.ensureResourceExists(collection, id, resp); !ok {
-		return
+	if _, ok := ms.resourceExists(collection, id); !ok {
+		return ResourceNotFound
 	}
 
 	// update resource
@@ -144,14 +143,13 @@ func (ms *MapStorage) Update(collection, id string, resource interface{}) (resp 
 	ms.data[collection][id] = resource
 	ms.Unlock()
 
-	resp = newMSSR(http.StatusOK, "")
-	return
+	return newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) Delete(collection, id string) (resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Delete(collection, id string) crudapi.StorageStatusResponse {
 	// make sure resource exists
-	if _, ok := ms.ensureResourceExists(collection, id, resp); !ok {
-		return
+	if _, ok := ms.resourceExists(collection, id); !ok {
+		return ResourceNotFound
 	}
 
 	// delete resource
@@ -159,14 +157,13 @@ func (ms *MapStorage) Delete(collection, id string) (resp crudapi.StorageStatusR
 	delete(ms.data[collection], id)
 	ms.Unlock()
 
-	resp = newMSSR(http.StatusOK, "")
-	return
+	return newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) DeleteAll(collection string) (resp crudapi.StorageStatusResponse) {
+func (ms *MapStorage) DeleteAll(collection string) crudapi.StorageStatusResponse {
 	// make sure collection exists
-	if ok := ms.ensureCollectionExists(collection, resp); !ok {
-		return
+	if !ms.collectionExists(collection) {
+		return CollectionNotFound
 	}
 
 	// delete resources
@@ -176,6 +173,5 @@ func (ms *MapStorage) DeleteAll(collection string) (resp crudapi.StorageStatusRe
 	}
 	ms.Unlock()
 
-	resp = newMSSR(http.StatusOK, "")
-	return
+	return newMSSR(http.StatusOK, "")
 }
