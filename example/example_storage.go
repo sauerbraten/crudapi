@@ -43,7 +43,7 @@ var (
 )
 
 // MapStorage is a basic storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
-// MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parrallel as well.
+// MapStorage is thread-safe, as any Storage implementation should be, since CRUD handlers run in parallel as well.
 type MapStorage struct {
 	*sync.RWMutex
 	data map[string]map[string]interface{}

@@ -1,6 +1,6 @@
 package crudapi
 
-// A StorageStatusResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occured, if any.
+// A StorageStatusResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occurred, if any.
 type StorageStatusResponse interface {
 	error            // the error, if any; otherwise nil
 	StatusCode() int // the HTTP status code that is returned to the client
