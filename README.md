@@ -35,7 +35,7 @@ You need to specify where you want to store data. You have to implement [`crudap
 
 	storage := NewMapStorage()
 
-Make sure your storage implementation is ready to handle the kinds of data you are going to use. For example, create the tables you'll need in you database. With MapStorage you create new maps like this:
+Make sure your storage implementation is ready to handle the collections of data you are going to use. For example, create the tables you'll need in you database. With MapStorage you create new maps like this:
 
 	storage.AddMap("mytype")
 	storage.AddMap("myothertype")
@@ -75,17 +75,17 @@ You could also use a subrouter for the API to limit it to a subdomain, and use v
 
 This will create the following CRUD routes:
 
-- `POST /{kind}`: Creates a resource of this *kind* and stores the data you POSTed, then returns the ID
-- `GET /{kind}`: Returns all resources of this *kind*
-- `GET /{kind}/{id}`: Returns the resource of this *kind* with that *id*
-- `PUT /{kind}/{id}`: Updates the resource of this *kind* with that *id*
-- `DELETE /{kind}`: Deletes all resources of this *kind*
-- `DELETE /{kind}/{id}`: Deletes the resource of this *kind* with that *id*
+- `POST /{collection}`: Creates a resource of this *collection* and stores the data you POSTed, then returns the ID
+- `GET /{collection}`: Returns all resources of this *collection*
+- `GET /{collection}/{id}`: Returns the resource of this *collection* with that *id*
+- `PUT /{collection}/{id}`: Updates the resource of this *collection* with that *id*
+- `DELETE /{collection}`: Deletes all resources of this *collection*
+- `DELETE /{collection}/{id}`: Deletes the resource of this *collection* with that *id*
 
 It also adds OPTIONS routes for easy discovery of your API:
 
-- `OPTIONS /{kind}`: Returns `Allow: POST, GET, DELETE` in an HTTP header
-- `OPTIONS /{kind}/{id]`: Returns `Allow: PUT, GET, DELETE` in an HTTP header
+- `OPTIONS /{collection}`: Returns `Allow: POST, GET, DELETE` in an HTTP header
+- `OPTIONS /{collection}/{id]`: Returns `Allow: PUT, GET, DELETE` in an HTTP header
 
 Last but not least, pass the `*mux.Router` to your http server's `ListenAndServe()` as usual:
 
@@ -95,11 +95,6 @@ Since the API is mounted on top of your `router`, you can also define additional
 
 	router.HandleFunc("/", index)
 	router.HandleFunc("/search", search)
-
-This package uses the [gorilla mux package](http://www.gorillatoolkit.org/pkg/mux), so you can use regular expressions and fancy stuff for your paths when using [`HandleFunc()`](http://www.gorillatoolkit.org/pkg/mux#Route.HandlerFunc); for example:
-
-	// javascript files
-	api.Router.Handle("/{filename:[a-z]+\\.js}", http.FileServer(http.Dir("js")))
 
 
 ## Example
@@ -119,7 +114,7 @@ Output:
 
 	{"id":"1361703578"}
 
-The ID in the reply is created by your storage implementation, typically a wrapper for a database, so when you insert something you get the ID of the inserted data. The MapStorage we use here simply uses the unix timestamp (which is definitely not recommended!).
+The ID in the reply is created by your storage implementation, typically a wrapper for a database, so when you insert something you get the ID of the inserted data. The MapStorage we use here simply uses random numbers (which is definitely not recommended).
 
 Create *Plastic Beach* as *album*:
 
@@ -176,15 +171,15 @@ Note the returned HTTP codes. Those status codes are set by your `Storage` imple
 
 - `201 Created` when creating,
 - `200 OK` when getting, updating and deleting.
-- `404 Not Found` if either the kind of data you are posting (for example `artists` and `albums` in the URLs) is unkown or you tried to get a non-existant resource (with a wrong ID). In that case `MapStorage` also sets the error, which is then returned in the JSON response, i.e.: `{"error":"resource not found"}` or `{"error":"kind not found"}`.
+- `404 Not Found` if either the collection of data you are POSTing to (for example `artists` and `albums` in the URLs) is unkown or you tried to get a non-existant resource (with a wrong ID). In that case `MapStorage` also sets the error, which is then returned in the JSON response, i.e.: `{"error":"resource not found"}` or `{"error":"collection not found"}`.
 
 There are a few status codes that are not set by your `Storage`, but the API handlers themselves:
 
 - `400 Bad Request` is returned when either the POSTed or PUTted JSON data is malformed and cannot be parsed or when you are PUTting without an `id` in the URL.
-- `401 Unauthorized` when authentication failed. This status code is used slightly different from its original definition in the HTTP protocol, in that it does not include the `WWW-Authenticate` header field in the response, since the API does not support HTTP Basic Authentication.
-- `403 Forbidden` is used when authentication was successful, but the client is not authorized to perform the specified action on the specified resource(s).
+- `405 Method Not Allowed` when the HTTP method isn't supported by the endpoint, e.g. when POSTing to a specific resource instead of a collection.
 
-The `401 Unauthorized` status code is slightly misleading, and should actually mean `401 Unauthenticated`, since it asks for authentication, and not authorization.
+Your auth middleware is responsible for sending `401 Unauthorized` or `403 Forbidden` when appropriate.
+
 
 ### Response Body
 
@@ -192,12 +187,12 @@ Server responses are always a JSON object, containing zero or more of the follow
 
 - `"error"`: specifies the error that occured, if any
 - `"id"`: the ID of the newly created resource (only used when POSTing)
-- `"result"`: the requested resource (`GET /kind/id`) or an array of resources (`GET /kind/`)
+- `"result"`: the requested resource (`GET /collection/id`) or an array of resources (`GET /collection/`)
 
 
 ## Documentation
 
-Full package documentation on [GoDoc](http://godoc.org/github.com/sauerbraten/crudapi).
+[Full package documentation on GoDoc.](http://godoc.org/github.com/sauerbraten/crudapi)
 
 ## License
 
