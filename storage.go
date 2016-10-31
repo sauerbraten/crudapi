@@ -1,8 +1,9 @@
 package crudapi
 
 // A StorageStatusResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occurred, if any.
+// You can satisfy the embedded error interface by embedding error in your own implementation, but make sure to initialize the embedded error with an empty error message, so calling its Error method is safe.
 type StorageStatusResponse interface {
-	error            // the error, if any; otherwise nil
+	error            // the error
 	StatusCode() int // the HTTP status code that is returned to the client
 }
 
