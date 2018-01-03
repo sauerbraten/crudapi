@@ -68,27 +68,12 @@ func chooseAndInitialize(handlersByMethod map[string]apiHandlerFunc, storage Sto
 }
 
 func create(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
-	var resource map[string]interface{}
-	err := dec.Decode(&resource)
-
-	if err != nil {
-		log.Println(err)
-
-		resp.WriteHeader(http.StatusBadRequest)
-		err = enc.Encode(apiResponse{"malformed json", "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-
 	// set in storage
-	id, stoResp := storage.Create(vars["collection"], resource)
+	id, stoResp := storage.Create(vars["collection"], dec)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode())
-	err = enc.Encode(apiResponse{stoResp.Error(), id, nil})
+	err := enc.Encode(apiResponse{stoResp.Error(), id, nil})
 	if err != nil {
 		log.Println(err)
 	}
@@ -96,7 +81,7 @@ func create(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 
 func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resources
-	resources, stoResp := storage.GetAll(vars["collection"])
+	resources, stoResp := storage.GetAll(vars["collection"], vars)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode())
@@ -108,7 +93,7 @@ func getAll(storage Storage, resp http.ResponseWriter, vars map[string]string, e
 
 func get(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
 	// look for resource
-	resource, stoResp := storage.Get(vars["collection"], vars["id"])
+	resource, stoResp := storage.Get(vars["collection"], vars["id"], vars)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode())
@@ -119,26 +104,12 @@ func get(storage Storage, resp http.ResponseWriter, vars map[string]string, enc 
 }
 
 func update(storage Storage, resp http.ResponseWriter, vars map[string]string, enc *json.Encoder, dec *json.Decoder) {
-	var resource map[string]interface{}
-	err := dec.Decode(&resource)
-
-	if err != nil {
-		log.Println(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		err := enc.Encode(apiResponse{"malformed json", "", nil})
-		if err != nil {
-			log.Println(err)
-		}
-
-		return
-	}
-
 	// update resource
-	stoResp := storage.Update(vars["collection"], vars["id"], resource)
+	stoResp := storage.Update(vars["collection"], vars["id"], dec)
 
 	// write response
 	resp.WriteHeader(stoResp.StatusCode())
-	err = enc.Encode(apiResponse{stoResp.Error(), "", nil})
+	err := enc.Encode(apiResponse{stoResp.Error(), "", nil})
 	if err != nil {
 		log.Println(err)
 	}

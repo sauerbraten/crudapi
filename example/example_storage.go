@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"net/http"
@@ -88,7 +89,7 @@ func (ms *MapStorage) resourceExists(collection, id string) (interface{}, bool) 
 	return resource, ok
 }
 
-func (ms *MapStorage) Create(collection string, resource interface{}) (string, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Create(collection string, body *json.Decoder) (string, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
 		return "", collectionNotFound
@@ -96,6 +97,16 @@ func (ms *MapStorage) Create(collection string, resource interface{}) (string, c
 
 	// make (pesudo-random) ID
 	id := strconv.FormatInt(rand.Int63(), 10)
+
+	// decode JSON body
+	var resource map[string]interface{}
+	err := body.Decode(&resource)
+	if err != nil {
+		return "", &mapStorageStatusResponse{
+			error:      errors.New("malformed JSON: " + err.Error()),
+			statusCode: http.StatusBadRequest,
+		}
+	}
 
 	// insert resource
 	ms.Lock()
@@ -132,10 +143,20 @@ func (ms *MapStorage) GetAll(collection string) ([]interface{}, crudapi.StorageS
 	return resources, newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) Update(collection, id string, resource interface{}) crudapi.StorageStatusResponse {
+func (ms *MapStorage) Update(collection, id string, body *json.Decoder) crudapi.StorageStatusResponse {
 	// make sure resource exists
 	if _, ok := ms.resourceExists(collection, id); !ok {
 		return resourceNotFound
+	}
+
+	// decode JSON body
+	var resource map[string]interface{}
+	err := body.Decode(&resource)
+	if err != nil {
+		return &mapStorageStatusResponse{
+			error:      errors.New("malformed JSON: " + err.Error()),
+			statusCode: http.StatusBadRequest,
+		}
 	}
 
 	// update resource

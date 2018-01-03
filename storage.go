@@ -1,5 +1,9 @@
 package crudapi
 
+import (
+	"encoding/json"
+)
+
 // A StorageStatusResponse is returned by Storage's methods. It sets the HTTP status code of the response and describes what kind of error occurred, if any.
 // You can satisfy the embedded error interface by embedding error in your own implementation, but make sure to initialize the embedded error with an empty error message, so calling its Error method is safe.
 type StorageStatusResponse interface {
@@ -9,26 +13,27 @@ type StorageStatusResponse interface {
 
 // Storage describes the methods required for a storage to be used with the API type.
 // When implementing your own storage, make sure that the methods are thread-safe.
+//
+// When applicable, the request body is passed in as a JSON decoder which can be used to translate
+// the input into arbitrary types.
+// Get and GetAll receive a map containing the route parameters (returned by a call to mux.Vars())
+// to allow for filtering etc.
 type Storage interface {
-	// first argument is always the kind of resource (for example the database table to use)
-	// a second string argument is the resource ID
-	// a interface{} is a resource (for example a JSON object or a database row with map indexes ~ column names)
-	//
 	// creates a resource and stores the data in it, then returns the ID
-	Create(string, interface{}) (string, StorageStatusResponse)
+	Create(collection string, body *json.Decoder) (string, StorageStatusResponse)
 
-	// retrieves a resource
-	Get(string, string) (interface{}, StorageStatusResponse)
+	// retrieves and returns a resource
+	Get(collection string, id string, vars map[string]string) (interface{}, StorageStatusResponse)
 
-	// retrieves all resources of the specified kind
-	GetAll(string) ([]interface{}, StorageStatusResponse)
+	// retrieves and returns all resources in the specified collection
+	GetAll(collection string, vars map[string]string) ([]interface{}, StorageStatusResponse)
 
 	// updates a resource
-	Update(string, string, interface{}) StorageStatusResponse
+	Update(collection string, id string, body *json.Decoder) StorageStatusResponse
 
 	// deletes a resource
-	Delete(string, string) StorageStatusResponse
+	Delete(collection string, id string) StorageStatusResponse
 
-	// delete all resources of a kind
-	DeleteAll(string) StorageStatusResponse
+	// delete all resources in a collection
+	DeleteAll(collection string) StorageStatusResponse
 }
