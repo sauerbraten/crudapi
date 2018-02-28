@@ -4,12 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"gopkg.in/sauerbraten/crudapi.v1"
+	"gopkg.in/sauerbraten/crudapi.v2"
 )
 
 func hello(resp http.ResponseWriter, req *http.Request) {
-	resp.Write([]byte("Hello there!"))
+	resp.Write([]byte("Hello there!\n"))
 }
 
 func main() {
@@ -18,21 +17,16 @@ func main() {
 	storage.AddMap("artists")
 	storage.AddMap("albums")
 
-	// router
-	r := mux.NewRouter()
+	// create CRUD API routes
+	api := crudapi.New(storage)
 
-	// mounting the API
-	crudapi.Mount(r.Host("localhost").Subrouter(), storage, nil)
+	// mount the API
+	http.Handle("/api/", http.StripPrefix("/api", api))
 
-	// custom handler
-	r.HandleFunc("/", hello)
+	// mount a custom handler
+	http.HandleFunc("/", hello)
 
 	// start listening
-	log.Println("server listening on localhost:8080")
-	log.Println("API on localhost:8080/")
-
-	err := http.ListenAndServe(":8080", r)
-	if err != nil {
-		log.Println(err)
-	}
+	log.Println("server listening on localhost:8080/")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

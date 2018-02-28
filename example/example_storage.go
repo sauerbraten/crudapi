@@ -2,45 +2,48 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
-	"gopkg.in/sauerbraten/crudapi.v1"
+	"gopkg.in/sauerbraten/crudapi.v2"
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-type mapStorageStatusResponse struct {
-	error
+type statusResponse struct {
+	err        string
 	statusCode int
 }
 
-func newMSSR(statusCode int, err string) *mapStorageStatusResponse {
-	return &mapStorageStatusResponse{
-		error:      errors.New(err),
+func (sr *statusResponse) StatusCode() int { return sr.statusCode }
+
+func (sr *statusResponse) Error() string { return sr.err }
+
+func success(statusCode int) *statusResponse {
+	// success just means there is no error
+	return failure("", statusCode)
+}
+
+func failure(err string, statusCode int) *statusResponse {
+	return &statusResponse{
+		err:        err,
 		statusCode: statusCode,
 	}
 }
 
-func (mssr *mapStorageStatusResponse) StatusCode() int {
-	return mssr.statusCode
+func malformedJSON(err error) *statusResponse {
+	return failure("malformed JSON: "+err.Error(), http.StatusBadRequest)
 }
 
 var (
-	collectionNotFound = &mapStorageStatusResponse{
-		error:      errors.New("collection not found"),
-		statusCode: http.StatusNotFound,
-	}
-	resourceNotFound = &mapStorageStatusResponse{
-		error:      errors.New("resource not found"),
-		statusCode: http.StatusNotFound,
-	}
+	collectionNotFound = failure("collection not found", http.StatusNotFound)
+	resourceNotFound   = failure("resource not found", http.StatusNotFound)
 )
 
 // MapStorage is a basic storage using maps. Thus, it is not persistent! It is meant as an example and for testing purposes.
@@ -58,21 +61,21 @@ func NewMapStorage() *MapStorage {
 // Adds a interface{} to the root level map. Equivalent to a database table.
 func (ms *MapStorage) AddMap(collection string) {
 	ms.Lock()
+	defer ms.Unlock()
 	ms.data[collection] = make(map[string]interface{})
-	ms.Unlock()
 }
 
 // Reverts AddMap().
 func (ms *MapStorage) DeleteMap(collection string) {
 	ms.Lock()
+	defer ms.Unlock()
 	delete(ms.data, collection)
-	ms.Unlock()
 }
 
 func (ms *MapStorage) collectionExists(collection string) bool {
 	ms.RLock()
+	defer ms.RUnlock()
 	_, ok := ms.data[collection]
-	ms.RUnlock()
 
 	return ok
 }
@@ -83,13 +86,13 @@ func (ms *MapStorage) resourceExists(collection, id string) (interface{}, bool) 
 	}
 
 	ms.RLock()
+	defer ms.RUnlock()
 	resource, ok := ms.data[collection][id]
-	ms.RUnlock()
 
 	return resource, ok
 }
 
-func (ms *MapStorage) Create(collection string, body *json.Decoder) (string, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Create(collection string, body *json.Decoder, _ url.Values) (string, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
 		return "", collectionNotFound
@@ -102,31 +105,28 @@ func (ms *MapStorage) Create(collection string, body *json.Decoder) (string, cru
 	var resource map[string]interface{}
 	err := body.Decode(&resource)
 	if err != nil {
-		return "", &mapStorageStatusResponse{
-			error:      errors.New("malformed JSON: " + err.Error()),
-			statusCode: http.StatusBadRequest,
-		}
+		return "", malformedJSON(err)
 	}
 
 	// insert resource
 	ms.Lock()
+	defer ms.Unlock()
 	ms.data[collection][id] = resource
-	ms.Unlock()
 
-	return id, newMSSR(http.StatusCreated, "")
+	return id, success(http.StatusCreated)
 }
 
-func (ms *MapStorage) Get(collection, id string, vars map[string]string) (interface{}, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Get(collection, id string, _ url.Values) (interface{}, crudapi.StorageStatusResponse) {
 	// make sure resource exists
 	resource, ok := ms.resourceExists(collection, id)
 	if !ok {
 		return nil, resourceNotFound
 	}
 
-	return resource, newMSSR(http.StatusOK, "")
+	return resource, success(http.StatusOK)
 }
 
-func (ms *MapStorage) GetAll(collection string, vars map[string]string) ([]interface{}, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) GetAll(collection string, _ url.Values) ([]interface{}, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
 		return nil, collectionNotFound
@@ -135,15 +135,15 @@ func (ms *MapStorage) GetAll(collection string, vars map[string]string) ([]inter
 	// collect all values in the collection's map in a slice
 	var resources []interface{}
 	ms.RLock()
+	defer ms.RUnlock()
 	for _, resource := range ms.data[collection] {
 		resources = append(resources, resource)
 	}
-	ms.RUnlock()
 
-	return resources, newMSSR(http.StatusOK, "")
+	return resources, success(http.StatusOK)
 }
 
-func (ms *MapStorage) Update(collection, id string, body *json.Decoder) crudapi.StorageStatusResponse {
+func (ms *MapStorage) Update(collection, id string, body *json.Decoder, _ url.Values) crudapi.StorageStatusResponse {
 	// make sure resource exists
 	if _, ok := ms.resourceExists(collection, id); !ok {
 		return resourceNotFound
@@ -153,10 +153,7 @@ func (ms *MapStorage) Update(collection, id string, body *json.Decoder) crudapi.
 	var resource map[string]interface{}
 	err := body.Decode(&resource)
 	if err != nil {
-		return &mapStorageStatusResponse{
-			error:      errors.New("malformed JSON: " + err.Error()),
-			statusCode: http.StatusBadRequest,
-		}
+		return malformedJSON(err)
 	}
 
 	// update resource
@@ -164,10 +161,10 @@ func (ms *MapStorage) Update(collection, id string, body *json.Decoder) crudapi.
 	ms.data[collection][id] = resource
 	ms.Unlock()
 
-	return newMSSR(http.StatusOK, "")
+	return success(http.StatusOK)
 }
 
-func (ms *MapStorage) Delete(collection, id string) crudapi.StorageStatusResponse {
+func (ms *MapStorage) Delete(collection, id string, _ url.Values) crudapi.StorageStatusResponse {
 	// make sure resource exists
 	if _, ok := ms.resourceExists(collection, id); !ok {
 		return resourceNotFound
@@ -175,13 +172,13 @@ func (ms *MapStorage) Delete(collection, id string) crudapi.StorageStatusRespons
 
 	// delete resource
 	ms.Lock()
+	defer ms.Unlock()
 	delete(ms.data[collection], id)
-	ms.Unlock()
 
-	return newMSSR(http.StatusOK, "")
+	return success(http.StatusOK)
 }
 
-func (ms *MapStorage) DeleteAll(collection string) crudapi.StorageStatusResponse {
+func (ms *MapStorage) DeleteAll(collection string, _ url.Values) crudapi.StorageStatusResponse {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
 		return collectionNotFound
@@ -189,10 +186,10 @@ func (ms *MapStorage) DeleteAll(collection string) crudapi.StorageStatusResponse
 
 	// delete resources
 	ms.Lock()
+	defer ms.Unlock()
 	for id := range ms.data[collection] {
 		delete(ms.data[collection], id)
 	}
-	ms.Unlock()
 
-	return newMSSR(http.StatusOK, "")
+	return success(http.StatusOK)
 }
