@@ -1,3 +1,6 @@
+### There is a newer version of this package available on the [`v2` branch](https://github.com/sauerbraten/crudapi/tree/v2).
+Soon, `master` will track the `v2` branch. Update your code to use v2 or change your imports to use `gopkg.in/sauerbraten/crudapi.v1`!
+
 # CRUD API
 
 An implementation of a minimalist RESTful JSON API offering Create, Read, Update, and Delete (CRUD) handlers.

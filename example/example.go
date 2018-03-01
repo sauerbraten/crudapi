@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sauerbraten/crudapi"
+	"gopkg.in/sauerbraten/crudapi.v1"
 )
 
 func hello(resp http.ResponseWriter, req *http.Request) {

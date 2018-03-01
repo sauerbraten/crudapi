@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sauerbraten/crudapi"
+	"gopkg.in/sauerbraten/crudapi.v1"
 )
 
 func init() {
@@ -116,7 +116,7 @@ func (ms *MapStorage) Create(collection string, body *json.Decoder) (string, cru
 	return id, newMSSR(http.StatusCreated, "")
 }
 
-func (ms *MapStorage) Get(collection, id string) (interface{}, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) Get(collection, id string, vars map[string]string) (interface{}, crudapi.StorageStatusResponse) {
 	// make sure resource exists
 	resource, ok := ms.resourceExists(collection, id)
 	if !ok {
@@ -126,7 +126,7 @@ func (ms *MapStorage) Get(collection, id string) (interface{}, crudapi.StorageSt
 	return resource, newMSSR(http.StatusOK, "")
 }
 
-func (ms *MapStorage) GetAll(collection string) ([]interface{}, crudapi.StorageStatusResponse) {
+func (ms *MapStorage) GetAll(collection string, vars map[string]string) ([]interface{}, crudapi.StorageStatusResponse) {
 	// make sure collection exists
 	if !ms.collectionExists(collection) {
 		return nil, collectionNotFound
