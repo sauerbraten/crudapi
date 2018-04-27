@@ -3,7 +3,7 @@
 // See http://en.wikipedia.org/wiki/RESTful and http://en.wikipedia.org/wiki/Create,_read,_update_and_delete for more information.
 //
 // An example can be found at: https://github.com/sauerbraten/crudapi#example
-package crudapi
+package crudapi // import "gopkg.in/sauerbraten/crudapi.v2"
 
 import (
 	"encoding/json"

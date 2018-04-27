@@ -1,4 +1,4 @@
-package crudapi
+package crudapi // import "gopkg.in/sauerbraten/crudapi.v2"
 
 import (
 	"encoding/json"
